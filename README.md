@@ -2,6 +2,9 @@
 
 A Julia implementation of tensor decomposition algorithms 
 
+[![Build Status](https://travis-ci.org/yunjhongwu/TensorDecompositions.svg?branch=master)](https://travis-ci.org/yunjhongwu/TensorDecompositions)
+
+
 -------
 
 ### Available functions
