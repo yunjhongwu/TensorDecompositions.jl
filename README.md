@@ -11,7 +11,7 @@ All the following functions (except `tensorcur`) return a `Factors`, which conta
 - Canonical polyadic decomposition (CANDECOMP/PARAFAC) `candecomp(T::StridedArray, rank::Integer; tol::Float64=1e-5, max_iter::Integer=100, hosvd_init::Bool=false])`
 - Non-negative CANDECOMP/PARAFAC by block-coordinate update [2] `ntfcp(T::StridedArray, rank::Integer; tol::Float64=1e-5, max_iter::Integer=100)`
 
-Tensor-CUR for 3-mode tensor returns indexes of *c* slabs (along axis *slab_index*) and *r* fibers, matrix *U*, and the residual.
+Tensor-CUR for 3-mode tensor returns indexes of *c* slabs (along axis *slab_index*) and *r* fibers, matrix *U*, and the residual. Note that this function samples with replacement, the numbers of repeated samples are stored in `Cweight` and `Rweight`
 
 - Tensor-CUR decomposition [3] for 3-mode tensors `tensorcur3(T::StridedArray, c::Integer, r::Integer, slab_index::Integer=3)`
 
