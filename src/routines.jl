@@ -3,8 +3,8 @@ type Factors
     core::Array{Float64}
     error::Float64
 
-    function Factors(factors::Array{Array{Float64, 2}, 1}, 
-                     T::StridedArray, 
+    function Factors(T::StridedArray,
+                     factors::Array{Array{Float64, 2}, 1}, 
                      S::Array{Float64}=zeros(0);
                      compute_res::Bool=true)
 

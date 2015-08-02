@@ -35,6 +35,6 @@ function candecomp(T::StridedArray,
         println("Warning: Iterations did not converge.")
     end
 
-    return Factors(factors, T, lbds)
+    return Factors(T, factors, lbds)
 end
 

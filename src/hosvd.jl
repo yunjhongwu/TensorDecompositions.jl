@@ -10,5 +10,5 @@ function hosvd(T::StridedArray, rank::Integer; compute_core::Bool=true)
     end
 
     factors = map(factor -> mapslices(_check_sign, factor, 1), factors)
-    return Factors(factors, T, compute_res=compute_core)
+    return Factors(T, factors, compute_res=compute_core)
 end

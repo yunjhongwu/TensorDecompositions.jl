@@ -55,8 +55,7 @@ function ntfcp(T::StridedArray,
         println("Warning: Iterations did not converge.")
     end
 
-    return Factors(factors, T, ones(1, rank)) 
-
+    return Factors(T, factors, ones(1, rank)) 
 end
 
 
