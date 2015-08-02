@@ -9,7 +9,7 @@ type Factors
                      compute_res::Bool=true)
 
         num_modes = ndims(T)
-        res = 0
+        res = NaN 
         if compute_res
             if length(S) > 0
                 res = vecnorm(_unfold(T, num_modes) - (factors[end] .* S) * reduce(_KhatriRao, factors[end-1:-1:1])')
