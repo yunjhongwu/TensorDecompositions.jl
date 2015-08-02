@@ -4,7 +4,7 @@ type CUR
     Rindex::Array{(Int64, Int64), 1}
     Rweight::Array{Int64, 1}
     U::Array{Float64, 2}
-    residual::Float64
+    error::Array{Float64, 1}
 
     function CUR(T::StridedArray,
                  Cindex::Array{Int64, 1},
@@ -14,12 +14,13 @@ type CUR
                  U::Array{Float64, 2},
                  compute_u::Bool)
 
-        res = NaN 
+        res = zeros(0) 
         if compute_u
             S = tensorcontract(T[Cindex, :, :], [1, 2, 3], U, [4, 1], [4, 2, 3])
             S = tensorcontract(T[:, Rindex], [1, 2], S, [2, 3, 4], [1, 3, 4])
-            res = vecnorm(S - T)
+            res = mapslices(vecnorm, S - T, [2, 3])[:] ./ mapslices(vecnorm, T, [2, 3])[:]
         end
+
         new(Cindex, Cweight, 
             [(i%size(T, 2) + 1, div(i, size(T, 3)) + 1)::(Int64, Int64) for i = Rindex], 
             Rweight, U, res) 

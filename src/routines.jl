@@ -1,7 +1,7 @@
 type Factors
     factors::Array{Array{Float64, 2}, 1}
     core::Array{Float64}
-    residual::Float64
+    error::Float64
 
     function Factors(factors::Array{Array{Float64, 2}, 1}, 
                      T::StridedArray, 
@@ -27,7 +27,7 @@ type Factors
                 res = vecnorm(L - T)
             end
         end
-        new(factors, S, res) 
+        new(factors, S, res / vecnorm(T)) 
     end
 end
 
