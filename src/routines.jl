@@ -1,9 +1,9 @@
-type Factors
+type Tucker 
     factors::Array{Array{Float64, 2}, 1}
     core::Array{Float64}
     error::Float64
 
-    function Factors(T::StridedArray,
+    function Tucker(T::StridedArray,
                      factors::Array{Array{Float64, 2}, 1}, 
                      S::Array{Float64}=zeros(0);
                      compute_res::Bool=true)

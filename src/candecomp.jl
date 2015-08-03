@@ -37,6 +37,6 @@ function candecomp(T::StridedArray,
         println("Warning: Iterations did not converge.")
     end
 
-    return Factors(T, factors, lbds, compute_res=compute_res)
+    return Tucker(T, factors, lbds, compute_res=compute_res)
 end
 

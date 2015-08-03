@@ -8,19 +8,24 @@ A Julia implementation of tensor decomposition algorithms
 -------
 
 ### Available functions
-All the following functions (except `tensorcur`) return a `Factors`, which contains `factors::Array{Array{Float64, 2}, 1}`, `core::Array{Float64}` (1-dimensional array if the core is a diagonal tensor), and the relative reconstruction error.
+
+
+1. The following functions Tucker decompositions return a `Tucker`, which contains `factors::Array{Array{Float64, 2}, 1}`, `core::Array{Float64}` (1-dimensional array if the core is a diagonal tensor), and the relative reconstruction error.
 
 - High-order SVD (HOSVD) `hosvd(T::StridedArray, rank::Integer; core::Bool=false)`; `hosvd` returns the residual only when `core=true`
-- Canonical polyadic decomposition (CANDECOMP/PARAFAC) `candecomp(T::StridedArray, rank::Integer; tol::Float64=1e-5, max_iter::Integer=100, hosvd_init::Bool=false])`
-- Non-negative CANDECOMP/PARAFAC by block-coordinate update [2] `ntfcp(T::StridedArray, rank::Integer; tol::Float64=1e-5, max_iter::Integer=100)`
+- Canonical polyadic decomposition (CANDECOMP/PARAFAC) by alternating least square [1] `candecomp(T::StridedArray, rank::Integer; tol::Float64=1e-5, max_iter::Integer=100, hosvd_init::Bool=false, compute_res::Bool=true, verbose=true)`
+- Non-negative CANDECOMP/PARAFAC by the block-coordinate update method [2] `ntfcp(T::StridedArray, rank::Integer; tol::Float64=1e-5, max_iter::Integer=100, compute_res::Bool=true, verbose::Bool=true)
 
-Tensor-CUR for 3-mode tensor returns indexes of *c* slabs (along axis *slab_index*) and *r* fibers, matrix *U*, and the relative reconstruction error of slabs. Note that this function samples with replacement, the numbers of repeated samples are stored in `Cweight` and `Rweight`.
+2. Tensor-CUR for 3-mode tensors [3] is a randomized algorithm and returns indexes of *c* slabs (along axis *slab_index*) and *r* fibers, matrix *U*, and the relative reconstruction error of slabs. Note that this function samples with replacement, the numbers of repeated samples are stored in `Cweight` and `Rweight`.
 
-- Tensor-CUR decomposition [3] for 3-mode tensors `tensorcur3(T::StridedArray, c::Integer, r::Integer, slab_index::Integer=3)`
+- `tensorcur3(T::StridedArray, c::Integer, r::Integer, slab_index::Integer=3)`
 
 ### Future plan
 
-- Binary tensor decompositions
+- More algorithms for fitting CANDECOMP and non-negative tensor decompositions
+- PARAFAC2
+- DEDICOM
+- Probabilistic tensor decompositions
 - Tensor completion algorithms
 
 ### Reference

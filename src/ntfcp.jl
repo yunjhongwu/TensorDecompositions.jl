@@ -56,7 +56,7 @@ function ntfcp(T::StridedArray,
         println("Warning: Iterations did not converge.")
     end
 
-    return Factors(T, factors, ones(1, rank)) 
+    return Tucker(T, factors, ones(1, rank)) 
 end
 
 
