@@ -54,10 +54,10 @@ function _check_sign(v::StridedVector)
     return sign(v[findmax(abs(v))[2]]) * v
 end
 
-function _check_tensor(T::StridedArray, rank::Integer)
+function _check_tensor(T::StridedArray, r::Integer)
     num_modes = ndims(T)
     @assert num_modes > 2
-    @assert rank <= minimum(size(T)) && rank > 0
+    @assert r <= minimum(size(T)) && r > 0
     return num_modes
 end
 

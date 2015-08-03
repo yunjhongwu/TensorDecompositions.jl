@@ -1,14 +1,14 @@
 function ntfcp(T::StridedArray, 
-               rank::Integer;
+               r::Integer;
                tol::Float64=1e-4,
                max_iters::Integer=100,
                verbose::Bool=true)
 
     @assert minimum(T) >= 0
-    num_modes = _check_tensor(T, rank)
+    num_modes = _check_tensor(T, r)
     T_norm = vecnorm(T)
     
-    factors = [abs(factor) * (T_norm ^ (1/num_modes) / vecnorm(factor)) for factor = _random_init(size(T), rank)]
+    factors = [abs(factor) * (T_norm ^ (1/num_modes) / vecnorm(factor)) for factor = _random_init(size(T), r)]
     factors_old = deepcopy(factors)
     factors_exp = deepcopy(factors)
     gram = [factor' * factor for factor = factors]
@@ -56,7 +56,7 @@ function ntfcp(T::StridedArray,
         println("Warning: Iterations did not converge.")
     end
 
-    return Tucker(T, factors, ones(1, rank)) 
+    return Tucker(T, factors, ones(1, r)) 
 end
 
 
