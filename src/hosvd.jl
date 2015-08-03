@@ -5,8 +5,7 @@ function hosvd(T::StridedArray, rank::Integer; compute_core::Bool=true)
 
     for i = 1:ndims(T)
         X = _unfold(T, i)
-        X = Symmetric(convert(Array{Float64, 2}, X * X'))
-        factors[i] = eigvecs(X)[:, end:-1:end-rank+1]
+        factors[i] = eigs(X * X', nev=rank)[2]
     end
 
     factors = map(factor -> mapslices(_check_sign, factor, 1), factors)
