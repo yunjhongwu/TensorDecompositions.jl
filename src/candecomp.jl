@@ -21,7 +21,7 @@ function candecomp(T::StridedArray,
         for i = 1:num_modes
             idx = [num_modes:-1:i+1, i-1:-1:1]
             V = reduce(_KhatriRao, factors[idx])
-            factors[i] = (reduce(.*, gram[idx]) \ (_unfold(T, i) * V)')'
+            factors[i] = _unfold(T, i) * V / reduce(.*, gram[idx])
             lbds = sum(abs(factors[i]), 1)
             factors[i] ./= lbds
             gram[i] = factors[i]' * factors[i]
