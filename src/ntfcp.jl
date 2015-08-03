@@ -1,7 +1,8 @@
 function ntfcp(T::StridedArray, 
                rank::Integer;
                tol::Float64=1e-4,
-               max_iters::Integer=100)
+               max_iters::Integer=100,
+               verbose::Bool=true)
 
     @assert minimum(T) >= 0
     num_modes = _check_tensor(T, rank)
@@ -51,7 +52,7 @@ function ntfcp(T::StridedArray,
 
     end
 
-    if !conv
+    if !conv && verbose
         println("Warning: Iterations did not converge.")
     end
 

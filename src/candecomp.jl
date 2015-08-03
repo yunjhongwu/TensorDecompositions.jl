@@ -2,7 +2,9 @@ function candecomp(T::StridedArray,
                    rank::Integer;
                    tol::Float64=1e-5,
                    max_iters::Integer=100,
-                   hosvd_init::Bool=false)
+                   compute_res::Bool=true,
+                   hosvd_init::Bool=false,
+                   verbose::Bool=true)
 
     num_modes = _check_tensor(T, rank)
 
@@ -31,10 +33,10 @@ function candecomp(T::StridedArray,
         niters += 1
     end
 
-    if !conv
+    if !conv && verbose
         println("Warning: Iterations did not converge.")
     end
 
-    return Factors(T, factors, lbds)
+    return Factors(T, factors, lbds, compute_res=compute_res)
 end
 
