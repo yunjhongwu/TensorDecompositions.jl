@@ -1,14 +1,18 @@
 type PARAFAC2 
     factors::Array{Array{Float64, 2}, 1}
-    D::Array{Float64, 2}
+    D::Array{Array{Float64, 2}, 1}
     A::Array{Float64, 2}
     error::Float64
 
-    PARAFAC2(P::Array{Array{Float64, 2}, 1},
-             F::Array{Float64, 2},
-             D::Array{Float64, 2},
-             A::Array{Float64, 2}, 
-             err::Float64) = new(Array{Float64, 2}[P[i] * F for i = 1:length(P)], D, A, err)
+    function PARAFAC2{S<:Matrix}(X::Array{S, 1},
+                                 F::Array{Float64, 2},
+                                 D::Array{Array{Float64, 2}, 1},
+                                 A::Array{Float64, 2},
+                                 res::Float64)
+
+        factors = map(U -> U[3] * U[1]' * F, map((Xi, Di) -> svd(F .* Di * A' * Xi'), X, D))
+        return new(factors, D, A, sqrt(res) / vecnorm(vcat(X...)))
+    end
 
 end
 
@@ -32,7 +36,7 @@ function parafac2{S<:Matrix}(X::Array{S, 1},
    
     niters = 0
     conv = false
-    err = vecnorm(vcat(X...))
+    res = vecnorm(vcat(X...))
     while !conv && niters < max_iters
         P = map(U -> U[3] * U[1]', map((Hi, Di) -> svd(F .* Di * A' * Hi'), H, D))
         T = cat(3, [P[i]' * H[i] for i = 1:m]...) 
@@ -44,20 +48,22 @@ function parafac2{S<:Matrix}(X::Array{S, 1},
         G[2] = A' * A
         B = _unfold(T, 3) * _KhatriRao(A, F) / (G[2] .* G[1])
         G[3] = B' * B
-        D = [B[i, :] for i = 1:m]
+        D = Array{Float64, 2}[B[i, :] for i = 1:m]
 
-        err_old = err
-        err = sum(map((Hi, Pi, Di) -> sum((Hi - Pi * F .* Di * A') .^ 2), H, P, D))
-        conv = abs(err - err_old) < tol * err_old 
+        res_old =res 
+        res = sum(map((Hi, Pi, Di) -> sum((Hi - Pi * F .* Di * A') .^ 2), H, P, D))
+        conv = abs(res - res_old) < tol * res_old 
 
         niters += 1
     end
     P = map(U -> U[3] * U[1]', map((Xi, Di) -> svd(F .* Di * A' * Xi'), X, D))
  
     if !conv && verbose
-        println("Warning: Iterations did not converge.")
+        println(string("Warning: Maximum number (", max_iters, ") of iterations exceeded."))
+    else 
+        println(string("The algorithm converaged after ", niters, " iterations.")) 
     end
 
-    return PARAFAC2(P, F, vcat(D...), A, sqrt(err) / vecnorm(vcat(X...)))
+    return PARAFAC2(X, F, D, A, res)
 end
 

@@ -3,6 +3,7 @@ using TensorOperations
 using Base.Test
 
 println("Running tests:")
+
 include("test-hosvd.jl")
 include("test-candecomp.jl")
 include("test-ntfcp.jl")

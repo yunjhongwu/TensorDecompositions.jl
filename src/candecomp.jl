@@ -33,7 +33,9 @@ function candecomp(T::StridedArray,
     end
 
     if !conv && verbose
-        println("Warning: Iterations did not converge.")
+        println(string("Warning: Maximum number (", max_iters, ") of iterations exceeded."))
+    else 
+        println(string("The algorithm converaged after ", niters, " iterations.")) 
     end
 
     return Tucker(T, factors, lbds, compute_res=compute_res)

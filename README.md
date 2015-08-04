@@ -1,8 +1,8 @@
-# Tensor Decompositions 
+# TensorDecompositions.jl
 
 A Julia implementation of tensor decomposition algorithms 
 
-[![Build Status](https://travis-ci.org/yunjhongwu/TensorDecompositions.svg?branch=master)](https://travis-ci.org/yunjhongwu/TensorDecompositions) 
+[![Build Status](https://travis-ci.org/yunjhongwu/TensorDecompositions.jl.svg?branch=master)](https://travis-ci.org/yunjhongwu/TensorDecompositions.jl) [![Coverage Status](https://coveralls.io/repos/yunjhongwu/TensorDecompositions.jl/badge.svg?branch=master&service=github)](https://coveralls.io/github/yunjhongwu/TensorDecompositions.jl?branch=master)
 
 ------- 
 

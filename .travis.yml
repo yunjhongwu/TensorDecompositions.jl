@@ -4,10 +4,11 @@ os:
     - linux
 julia:
     - release
-    - nightly
 notifications:
     email: false
 script:
-  - julia -e 'Pkg.init(); run(`ln -s $(pwd()) $(Pkg.dir("TensorDecompositions"))`); Pkg.pin("TensorDecompositions"); Pkg.resolve()'
-  - if [ $JULIAVERSION = "julianightlies" ]; then julia --code-coverage test/runtests.jl; fi
-  - if [ $JULIAVERSION = "juliareleases" ]; then julia test/runtests.jl; fi
+  - julia -e 'Pkg.init(); Pkg.clone(pwd()); Pkg.test("TensorDecompositions", coverage=true)'
+
+after_success:
+  - julia -e 'cd(Pkg.dir("TensorDecompositions")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(Coveralls.process_folder())'
+
