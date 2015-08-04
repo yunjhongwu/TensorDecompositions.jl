@@ -12,7 +12,7 @@ A Julia implementation of tensor decomposition algorithms
 
   - High-order SVD (HOSVD) `hosvd(T::StridedArray, r::Integer; compute_core::Bool=false)`; `hosvd` returns the residual only when `core=true` 
   - Canonical polyadic decomposition (CANDECOMP/PARAFAC) by alternating least square [1] `candecomp(T::StridedArray, r::Integer; tol::Float64=1e-5, max_iters::Integer=100, hosvd_init::Bool=false, compute_res::Bool=true, verbose=true)`
-  - Non-negative CANDECOMP/PARAFAC by the block-coordinate update method [2] `ntfcp(T::StridedArray, r::Integer; tol::Float64=1e-5, max_iters::Integer=100, compute_res::Bool=true, verbose::Bool=true)`
+  - Non-negative CANDECOMP/PARAFAC by the block-coordinate update method [2] `nncp(T::StridedArray, r::Integer; tol::Float64=1e-5, max_iters::Integer=100, compute_res::Bool=true, verbose::Bool=true)`
 
 2. Tensor-CUR for 3-mode tensors [3] is a randomized algorithm and returns a `CUR`, which includes indexes of *c* slabs (along axis *slab_index*) and *r* fibers, matrix *U*, and the relative reconstruction error of slabs. Note that this function samples with replacement, the numbers of repeated samples are stored in `Cweight` and `Rweight`.
 

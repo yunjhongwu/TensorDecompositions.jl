@@ -1,8 +1,8 @@
-function ntfcp(T::StridedArray, 
-               r::Integer;
-               tol::Float64=1e-4,
-               max_iters::Integer=100,
-               verbose::Bool=true)
+function nncp(T::StridedArray, 
+              r::Integer;
+              tol::Float64=1e-4,
+              max_iters::Integer=100,
+              verbose::Bool=true)
 
     @assert minimum(T) >= 0
     num_modes = _check_tensor(T, r)
