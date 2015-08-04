@@ -1,7 +1,7 @@
 function candecomp(T::StridedArray,
                    r::Integer;
                    tol::Float64=1e-5,
-                   max_iters::Integer=100,
+                   maxiter::Integer=100,
                    compute_res::Bool=true,
                    hosvd_init::Bool=false,
                    verbose::Bool=true)
@@ -13,10 +13,10 @@ function candecomp(T::StridedArray,
     T_norm = vecnorm(T) 
     T_flat = _unfold(T, num_modes)'
     niters = 0
-    conv = false
+    converged = false
     res = T_norm 
     lbds = Array(Float64, r)
-    while !conv && niters < max_iters
+    while !converged && niters < maxiter
         V = []
         for i = 1:num_modes
             idx = [num_modes:-1:i+1, i-1:-1:1]
@@ -28,15 +28,12 @@ function candecomp(T::StridedArray,
         end
         res_old = res 
         res = vecnorm(V * (factors[num_modes] .* lbds)'- T_flat) 
-        conv = abs(res - res_old) < tol * T_norm 
+        converged = abs(res - res_old) < tol * res_old 
         niters += 1
     end
 
-    if !conv && verbose
-        println(string("Warning: Maximum number (", max_iters, ") of iterations exceeded."))
-    else 
-        println(string("The algorithm converaged after ", niters, " iterations.")) 
-    end
+    verbose && println(converged ? string("The algorithm converged after ", niters, " iterations.") :
+                                   string("Warning: Maximum number (", maxiter, ") of iterations exceeded."))
 
     return Tucker(T, factors, lbds, compute_res=compute_res)
 end

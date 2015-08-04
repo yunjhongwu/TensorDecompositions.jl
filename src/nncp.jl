@@ -1,7 +1,7 @@
 function nncp(T::StridedArray, 
               r::Integer;
               tol::Float64=1e-4,
-              max_iters::Integer=100,
+              maxiter::Integer=100,
               verbose::Bool=true)
 
     @assert minimum(T) >= 0
@@ -14,7 +14,7 @@ function nncp(T::StridedArray,
     gram = [factor' * factor for factor = factors]
 
     niters = 0
-    conv = false
+    converged = false
     obj_old = 0 
     t = 1
     t_old = 1
@@ -22,7 +22,7 @@ function nncp(T::StridedArray,
     LB = ones(num_modes)
     LB_old = ones(num_modes)
 
-    while !conv && niters < max_iters
+    while !converged && niters < maxiter
         U = Array(Float64, num_modes, num_modes) 
         M = []
         for i = 1:num_modes
@@ -36,7 +36,7 @@ function nncp(T::StridedArray,
         end
         
         obj = sum(gram[num_modes] .* U) - 4 * sum(factors[num_modes] .* M)  
-        conv = abs(obj - obj_old) < tol * abs(obj_old)
+        converged = abs(obj - obj_old) < tol * abs(obj_old)
 
         if obj > obj_old
             factors_exp = factors_old
@@ -52,12 +52,8 @@ function nncp(T::StridedArray,
 
     end
 
- 
-    if !conv && verbose
-        println(string("Warning: Maximum number (", max_iters, ") of iterations exceeded."))
-    else 
-        println(string("The algorithm converaged after ", niters, " iterations.")) 
-    end
+    verbose && println(converged ? string("The algorithm converged after ", niters, " iterations.") :
+                                   string("Warning: Maximum number (", maxiter, ") of iterations exceeded."))
 
     return Tucker(T, factors, ones(1, r)) 
 end

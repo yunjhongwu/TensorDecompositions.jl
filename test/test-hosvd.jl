@@ -8,6 +8,7 @@ for i = 1:r
                                        randn(size(T, 3), 1), [5, 3], [1, 4, 5])
 end                   
 
+println(" - Case 1")
 @time factors = hosvd(T, r)
 @test length(factors.factors) == ndims(T)
 for i = 1:ndims(T)
@@ -16,6 +17,7 @@ end
 @test size(factors.core) == (r, r, r)
 @test factors.error < 1e-5
 
+println(" - Case 2")
 @time factors = hosvd(T, r, compute_core=false)
 @test size(factors.core) == (0,)
 @test isnan(factors.error) 

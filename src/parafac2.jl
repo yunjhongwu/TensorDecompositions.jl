@@ -19,7 +19,7 @@ end
 function parafac2{S<:Matrix}(X::Array{S, 1}, 
                              r::Integer;
                              tol::Float64=1e-5,
-                             max_iters::Integer=100,
+                             maxiter::Integer=100,
                              verbose::Bool=true)
     m = length(X)
     n = size(X[1], 2)
@@ -35,9 +35,9 @@ function parafac2{S<:Matrix}(X::Array{S, 1},
     P = Array(Array{Float64, 2}, m) 
    
     niters = 0
-    conv = false
+    converged = false
     res = vecnorm(vcat(X...))
-    while !conv && niters < max_iters
+    while !converged && niters < maxiter
         P = map(U -> U[3] * U[1]', map((Hi, Di) -> svd(F .* Di * A' * Hi'), H, D))
         T = cat(3, [P[i]' * H[i] for i = 1:m]...) 
 
@@ -52,17 +52,14 @@ function parafac2{S<:Matrix}(X::Array{S, 1},
 
         res_old =res 
         res = sum(map((Hi, Pi, Di) -> sum((Hi - Pi * F .* Di * A') .^ 2), H, P, D))
-        conv = abs(res - res_old) < tol * res_old 
+        converged = abs(res - res_old) < tol * res_old 
 
         niters += 1
     end
     P = map(U -> U[3] * U[1]', map((Xi, Di) -> svd(F .* Di * A' * Xi'), X, D))
  
-    if !conv && verbose
-        println(string("Warning: Maximum number (", max_iters, ") of iterations exceeded."))
-    else 
-        println(string("The algorithm converaged after ", niters, " iterations.")) 
-    end
+    verbose && println(converged ? string("The algorithm converged after ", niters, " iterations.") :
+                                   string("Warning: Maximum number (", maxiter, ") of iterations exceeded."))
 
     return PARAFAC2(X, F, D, A, res)
 end
