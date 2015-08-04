@@ -8,7 +8,7 @@ for i = 1:r
                                        rand(size(T, 3), 1), [5, 3], [1, 4, 5])
 end                   
 
-@time factors = ntfcp(T, r)
+@time factors = nncp(T, r)
 @test length(factors.factors) == ndims(T)
 for i = 1:ndims(T)
     @test size(factors.factors[i]) == (size(T, i), r)
