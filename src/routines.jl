@@ -4,9 +4,9 @@ type Tucker
     error::Float64
 
     function Tucker(T::StridedArray,
-                     factors::Array{Array{Float64, 2}, 1}, 
-                     S::Array{Float64}=zeros(0);
-                     compute_res::Bool=true)
+                    factors::Array{Array{Float64, 2}, 1}, 
+                    S::Array{Float64}=zeros(0);
+                    compute_res::Bool=true)
 
         num_modes = ndims(T)
         res = NaN 

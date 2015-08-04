@@ -4,9 +4,6 @@ module TensorDecompositions
     using TensorOperations
     using Distributions
 
-    import TensorOperations: tensorcontract
-    import Distributions: Categorical, rand
-
     export 
 
     hosvd,                   # High-order SVD
