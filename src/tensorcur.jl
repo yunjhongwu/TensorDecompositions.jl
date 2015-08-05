@@ -34,8 +34,8 @@ function tensorcur3(T::StridedArray,
                     slab_axis::Integer=3; 
                     compute_u::Bool=true)
 
-    @assert ndims(T) == 3
-    @assert slab_axis in {1,2,3}
+    ndims(T) == 3 || error("This method currently only supports 3-mode tensors.")
+    slab_axis in {1,2,3} || error("Invalid slab_axis; slab_axis should be 1, 2, or 3")
     T = permutedims(T, [slab_axis, 1:slab_axis-1, slab_axis+1:3])
     T2 = T .^ 2
     T2_sum = sum(T2)

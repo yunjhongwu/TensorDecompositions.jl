@@ -8,7 +8,6 @@ X = Array{Float64, r}[(randn(4 * (i + 1), r) * A) for i = 1:5]
 for i = 1:length(X)
     @assert size(factors.factors[i]) == (size(X[i], 1), r)
     @assert size(factors.D[i]) == (1, r)
-    
 end
 
 @assert length(factors.D) == length(X)

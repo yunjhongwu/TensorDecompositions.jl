@@ -24,7 +24,7 @@ function parafac2{S<:Matrix}(X::Array{S, 1},
     m = length(X)
     n = size(X[1], 2)
     for i = 2:m
-        @assert size(X[i], 2) == n
+        size(X[i], 2) == n || error("All input matrices should have the same number of rows.")
     end
     
     F = eye(r)
@@ -48,9 +48,10 @@ function parafac2{S<:Matrix}(X::Array{S, 1},
         G[2] = A' * A
         B = _unfold(T, 3) * _KhatriRao(A, F) / (G[2] .* G[1])
         G[3] = B' * B
+
         D = Array{Float64, 2}[B[i, :] for i = 1:m]
 
-        res_old =res 
+        res_old = res 
         res = sum(map((Hi, Pi, Di) -> sum((Hi - Pi * F .* Di * A') .^ 2), H, P, D))
         converged = abs(res - res_old) < tol * res_old 
 

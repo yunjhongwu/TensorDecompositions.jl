@@ -4,7 +4,7 @@ function nncp(T::StridedArray,
               maxiter::Integer=100,
               verbose::Bool=true)
 
-    @assert minimum(T) >= 0
+    minimum(T) >= 0 || error("The input tensor must be nonnegative.")
     num_modes = _check_tensor(T, r)
     T_norm = vecnorm(T)
     

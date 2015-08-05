@@ -37,12 +37,12 @@ function _random_init(d::Tuple, n_components::Integer)
 end
 
 function _KhatriRao(A::StridedMatrix, B::StridedMatrix)
-    @assert size(A, 2) == size(B, 2)
+    size(A, 2) == size(B, 2) || error("Input matrices should have the same number of columns.")
     return [[kron(A[:, i], B[:, i])' for i = 1:size(A, 2)]...]'
 end
 
 function _unfold(T::StridedArray, mode::Integer)
-    @assert mode <= ndims(T) && mode > 0
+    mode <= ndims(T) && mode > 0 || error("Unable to unfold the tensor: invalid mode index")
 
     idx = [mode, 1:mode-1, mode+1:ndims(T)] 
     return reshape(permutedims(T, idx), 
@@ -56,8 +56,8 @@ end
 
 function _check_tensor(T::StridedArray, r::Integer)
     num_modes = ndims(T)
-    @assert num_modes > 2
-    @assert r <= minimum(size(T)) && r > 0
+    num_modes > 2 || error("This method does not support scalars, vectors, or matrices input.")
+    r <= minimum(size(T)) && r > 0 || error("r should satisfy 0 < r <= minimum(size(T)).")
     return num_modes
 end
 
