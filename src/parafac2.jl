@@ -59,7 +59,7 @@ function parafac2{S<:Matrix}(X::Array{S, 1},
     end
     P = map(U -> U[3] * U[1]', map((Xi, Di) -> svd(F .* Di * A' * Xi'), X, D))
  
-    verbose && println(converged ? string("The algorithm converged after ", niters, " iterations.") :
+    verbose && println(converged ? string("Algorithm converged after ", niters, " iterations.") :
                                    string("Warning: Maximum number (", maxiter, ") of iterations exceeded."))
 
     return PARAFAC2(X, F, D, A, res)

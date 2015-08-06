@@ -58,6 +58,7 @@ function _check_tensor(T::StridedArray, r::Integer)
     num_modes = ndims(T)
     num_modes > 2 || error("This method does not support scalars, vectors, or matrices input.")
     r <= minimum(size(T)) && r > 0 || error("r should satisfy 0 < r <= minimum(size(T)).")
+    isreal(T) || error("This package currently only supports real-number-valued tensors.")
     return num_modes
 end
 

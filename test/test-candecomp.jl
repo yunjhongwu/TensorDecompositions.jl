@@ -7,12 +7,22 @@ for i = 1:r
                                        randn(size(T, 2), 1), [4, 2], [1, 4, 3]), [1, 4, 3],
                                        randn(size(T, 3), 1), [5, 3], [1, 4, 5])
 end                   
-
-@time factors = candecomp(T, r)
+println(" - Case 1: Alternating least square")
+@time factors = candecomp(T, r, algo="als")
 @test length(factors.factors) == ndims(T)
 for i = 1:ndims(T)
     @test size(factors.factors[i]) == (size(T, i), r)
 end
 @test length(factors.core) == r
 @test factors.error < 1e-5
+
+println(" - Case 2: Simultaneous generalized Schur decomposition")
+@time factors = candecomp(T, r, algo="sgsd")
+@test length(factors.factors) == ndims(T)
+for i = 1:ndims(T)
+    @test size(factors.factors[i]) == (size(T, i), r)
+end
+@test length(factors.core) == r
+@test factors.error < 1e-5
+
 

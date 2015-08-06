@@ -14,5 +14,4 @@ for i = 1:ndims(T)
     @test size(factors.factors[i]) == (size(T, i), r)
 end
 @test length(factors.core) == r
-println(factors.error)
 @test factors.error < 0.05 

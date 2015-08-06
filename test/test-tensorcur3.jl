@@ -8,13 +8,13 @@ for i = 1:r
                                        rand(size(T, 3), 1), [5, 3], [1, 4, 5])
 end                   
 
-println(" - Case 1")
+println(" - Case 1: Small case")
 @time factors = tensorcur3(T, 3, 20)
 @test sum(factors.Cweight) == 3
 @test sum(factors.Rweight) == 20 
 @test all(factors.error .< 1e-5)
 
-println(" - Case 2")
+println(" - Case 2: Large case without reconstruction")
 @time factors = tensorcur3(T, 10, 200, compute_u=false)
 @test sum(factors.Cweight) == 10 
 @test sum(factors.Rweight) == 200 
