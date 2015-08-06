@@ -1,18 +1,16 @@
 println("Tensor-CUR")
-r = 2
-srand(1)
-T = zeros(20, 40, 60)
-for i = 1:r
-    T += tensorcontract(tensorcontract(rand(size(T, 1), 1, 1), [1, 2, 3],
-                                       rand(size(T, 2), 1), [4, 2], [1, 4, 3]), [1, 4, 3],
-                                       rand(size(T, 3), 1), [5, 3], [1, 4, 5])
-end                   
+T = _kruskal3_generator(2, (20, 40, 60), 1, false)
 
 println(" - Case 1: Small case")
-@time factors = tensorcur3(T, 3, 20)
-@test sum(factors.Cweight) == 3
-@test sum(factors.Rweight) == 20 
-@test all(factors.error .< 1e-5)
+for i in 1:3
+    println(string("    - Slab axis: ", i))
+    @time factors = tensorcur3(T, 3, 15, i)
+    @test sum(factors.Cweight) == 3
+    @test sum(factors.Rweight) == 15 
+    @test all(factors.error .< 1e-5)
+end
+
+T = _kruskal3_generator(2, (100, 120, 60), 1, false)
 
 println(" - Case 2: Large case without reconstruction")
 @time factors = tensorcur3(T, 10, 200, compute_u=false)

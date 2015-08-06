@@ -1,27 +1,29 @@
 # TensorDecompositions.jl
 
-A Julia implementation of tensor decomposition algorithms 
+A Julia implementation of tensor decomposition algorithms
 
 [![Build Status](https://travis-ci.org/yunjhongwu/TensorDecompositions.jl.svg?branch=master)](https://travis-ci.org/yunjhongwu/TensorDecompositions.jl) [![Coverage Status](https://coveralls.io/repos/yunjhongwu/TensorDecompositions.jl/badge.svg?branch=master&service=github)](https://coveralls.io/github/yunjhongwu/TensorDecompositions.jl?branch=master)
 
 ------- 
 ### Available functions 
 
-1. The following functions for Tucker decompositions return a `Tucker`, which contains `factors::Array{Array{Float64, 2}, 1}`, `core::Array{Float64}` (1-dimensional array if the core is a diagonal tensor), and the relative reconstruction error.
+1. The following functions for Tucker decompositions return a `Tucker`, which contains `factors::Vector{Matrix{Float64}}`, `core::Array{Float64}` (1-dimensional array for Kruskal tensor decompositions), and the relative reconstruction error `error::Float64`.
 
-  - **High-order SVD (HOSVD)** `hosvd(T::StridedArray, r::Integer; compute_core::Bool=false)`; `hosvd` returns the residual only when `core=true` 
+  - **High-order SVD (HOSVD)** [3] `hosvd(T::StridedArray, r::Integer; compute_core::Bool=false)`; `hosvd` returns the residual only when `core=true` 
   - **Canonical polyadic decomposition (CANDECOMP/PARAFAC)** `candecomp(T::StridedArray, r::Integer, algo::String="als"; tol::Float64=1e-5, maxiter::Integer=100, hosvd_init::Bool=false, compute_res::Bool=true, verbose=true)`; this function provides two algorithms, set by `algo` argument, for fitting the CANDECOMP model:
     - *als* (default): Alternating least square method [3] 
     - *sgsd*: Simultaneous generalized Schur decomposition [1]
   - **Non-negative CANDECOMP/PARAFAC** by the block-coordinate update method [5] `nncp(T::StridedArray, r::Integer; tol::Float64=1e-5, maxiter::Integer=100, compute_res::Bool=true, verbose::Bool=true)`
 
-2. **Tensor-CUR** for 3-mode tensors [4] is a randomized algorithm and returns a `CUR`, which includes indexes of *c* slabs (along axis *slab_index*) and *r* fibers, matrix *U*, and the relative reconstruction error of slabs. Note that this function samples with replacement, the numbers of repeated samples are stored in `Cweight` and `Rweight`.
+  > Remark. Choose a smaller `r` if the above functions throw `ERROR: SingularException`.
+
+2. **Tensor-CUR** for 3-mode tensors [4] is a randomized algorithm and returns a `CUR`, which includes indexes of *c* slabs (along axis *slab_index*) and *r* fibers, matrix *U*, and the relative reconstruction error of slabs. Note that this function samples with replacement, and the numbers of repeated samples are stored in `Cweight` and `Rweight`.
 
   - `tensorcur3(T::StridedArray, c::Integer, r::Integer, slab_index::Integer=3, compute_u::Bool=true)`
 
 3. **PARAFAC2** for 3-mode tensors by the alternating least square method [2] takes an array of matrices, which may not be equally sized, and factorizes the matrices under a constraint on row space. The below function returns a `PARAFAC2`, which contains factors and diagonal effects `D` of each matrix, a common loading matrix `A`, and the relative error.
 
-  - `parafac2{S<:Matrix}(X::Array{S, 1}, r::Integer; tol::Float64=1e-5, maxiter::Integer=100, verbose::Bool=true)`
+  - `parafac2{S<:Matrix}(X::Vector{S}, r::Integer; tol::Float64=1e-5, maxiter::Integer=100, verbose::Bool=true)`
 
 
 + Common parameters:
@@ -83,6 +85,10 @@ julia> F.core
   - Julia 0.3
   - TensorOperations
   - Distributions
+  - Compat
+
+### Performance issues
+  - Inefficiency of unfolding (matricizing), which has a significant impact on the performance of `candecomp` (`algo="als"`) and `parafac2`
 
 ### Future plan
   - Improving performance 

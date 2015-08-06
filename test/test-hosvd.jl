@@ -1,17 +1,11 @@
 println("HOSVD")
 r = 2
-srand(1)
-T = zeros(10, 20, 30)
-for i = 1:r
-    T += tensorcontract(tensorcontract(randn(size(T, 1), 1, 1), [1, 2, 3],
-                                       randn(size(T, 2), 1), [4, 2], [1, 4, 3]), [1, 4, 3],
-                                       randn(size(T, 3), 1), [5, 3], [1, 4, 5])
-end                   
+T = _kruskal3_generator(r, (10, 20, 30), 1, false)
 
 println(" - Case 1: HOSVD algorithm")
 @time factors = hosvd(T, r, compute_core=false)
 @test length(factors.factors) == ndims(T)
-for i = 1:ndims(T)
+for i in 1:ndims(T)
     @test size(factors.factors[i]) == (size(T, i), r)
 end
 @test size(factors.core) == (0,)

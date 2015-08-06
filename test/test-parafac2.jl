@@ -2,10 +2,9 @@ println("PARAFAC2")
 srand(1)
 r = 2
 A = randn(r, 10)
-X = Array{Float64, r}[(randn(4 * (i + 1), r) * A) for i = 1:5]
-
+X = Array{Float64, r}[(randn(4 * (i + 1), r) * A) for i in 1:5]
 @time factors = parafac2(X, 2)
-for i = 1:length(X)
+for i in 1:length(X)
     @assert size(factors.factors[i]) == (size(X[i], 1), r)
     @assert size(factors.D[i]) == (1, r)
 end
