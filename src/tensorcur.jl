@@ -19,10 +19,12 @@ immutable CUR
 
         res = zeros(0) 
         if compute_u
-            S = tensorcontract(slicedim(T, slab_axis, Cindex), [1, 2, 3], U, [4, slab_axis])
-            S = tensorcontract(S, [fiber_axes[1], fiber_axes[2], 4], 
-                               (slab_axis > 1 ? transpose : identity)(squeeze(mapslices(slab -> slab[Rindex], T, fiber_axes), fiber_axes[2])),
-                               [slab_axis, 4], [1, 2, 3])
+            output_index = [1:3]
+            output_index[slab_axis] = 4
+            S = tensorcontract(slicedim(T, slab_axis, Cindex), [1, 2, 3], U, [4, slab_axis], output_index)
+            W = squeeze(permutedims(mapslices(slab -> slab[Rindex], T, fiber_axes), 
+                                    [slab_axis, fiber_axes[1], fiber_axes[2]]), 3)
+            S = tensorcontract(S, output_index, W, [slab_axis, 4], [1, 2, 3])
             res = mapslices(vecnorm, S - T, fiber_axes)[:] ./ mapslices(vecnorm, T, fiber_axes)[:]
         end
         new(Cindex, Cweight, [zip(ind2sub(fiber_size, Rindex)...)...], Rweight, U, res) 
@@ -37,7 +39,7 @@ function tensorcur3(T::StridedArray,
 
     ndims(T) == 3 || error("This method currently only supports 3-mode tensors.")
     slab_axis > 0 && slab_axis < 4 || error("Invalid slab_axis; slab_axis should be 1, 2, or 3")
-    fiber_axes = (1 + (slab_axis == 1), 3 - (slab_axis == 3))
+    fiber_axes = tuple(circshift([1, 2, 3], 1 - slab_axis)[2:3]...)
     fiber_size = (size(T, fiber_axes[1]), size(T, fiber_axes[2]))
     T2 = T .^ 2
     T2_sum = sum(T2)
@@ -55,9 +57,11 @@ function tensorcur3(T::StridedArray,
  
     U = compute_u ? Array(Float64, r, c) : zeros(0, 0) 
     if compute_u
-        P = Cweight ./ p[Cindex] * (Rweight ./ q[Rindex])'
-        U = pinv((slab_axis > 1 ? transpose : identity)(squeeze(mapslices(slab -> slab[Rindex], 
-                                                        slicedim(T, slab_axis, Cindex), fiber_axes), fiber_axes[2])) .* P) .* P'
+        P = Cweight * Rweight' ./ (p[Cindex] *  q[Rindex]')
+        W = squeeze(permutedims(mapslices(slab -> slab[Rindex], 
+                                slicedim(T, slab_axis, Cindex), fiber_axes), 
+                                [slab_axis, fiber_axes[1], fiber_axes[2]]), 3)
+        U = pinv(W .* P) .* P'
     end
 
     return CUR(T, slab_axis, fiber_axes, fiber_size, Cindex, Cweight, Rindex, Rweight, U, compute_u)
