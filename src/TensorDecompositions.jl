@@ -9,6 +9,7 @@ module TensorDecompositions
 
     hosvd,                   # High-order SVD
     candecomp,               # Canonical polyadic decomposition (CANDECOMP/PARAFAC)
+    sshopm,                  # Shifted symmetric higher-order power method
     nncp,                    # Non-negative CANDECOMP 
     tensorcur3,              # Tensor-CUR for 3-mode tensors
     parafac2                 # PARAFAC2 model
@@ -16,6 +17,7 @@ module TensorDecompositions
     include("utils.jl")      # Sub-routines
     include("hosvd.jl")
     include("candecomp.jl")
+    include("sshopm.jl")
     include("nncp.jl")
     include("tensorcur.jl")
     include("parafac2.jl")

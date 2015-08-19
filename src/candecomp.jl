@@ -4,14 +4,13 @@ function candecomp(T::StridedArray,
                    tol::Float64=1e-5,
                    maxiter::Integer=100,
                    compute_res::Bool=true,
-                   hosvd_init::Bool=false,
-                   verbose::Bool=true)
-    @compat algos = Dict{String, Function}( "als" => _candecomp_als, "sgsd" => _candecomp_sgsd ) 
-    haskey(algos, algo) || error("Algorithm does not exist.")
-
+                   random_init::Bool=true,
+                   verbose::Bool=true) 
+    @compat algos = Dict{String, Function}( "als" => _candecomp_als, 
+                                            "sgsd" => _candecomp_sgsd)
+    haskey(algos, algo) || error(string("Algorithm ", algo," does not exist."))
     num_modes = _check_tensor(T, r)
-    factors = (hosvd_init) ? hosvd(T, r, compute_core=false).factors : _random_init(size(T), r)
-    
+    factors = random_init ? _random_init(size(T), r) : hosvd(T, r, compute_core=false).factors      
     return algos[algo](T, r, num_modes, factors, tol, maxiter, compute_res, verbose)
 end
 
@@ -67,7 +66,7 @@ function _candecomp_sgsd(T::StridedArray,
     num_modes == 3 || error("This algorithm only applies to 3-mode tensors.")
 
     (n1, n2, n3) = size(T)
-    IB = [min(n1 - 1, r), (n2 == r) ? 2 : 1]
+    IB = (min(n1 - 1, r), (n2 == r) ? 2 : 1)
     Q = qr(factors[1], thin=false)[1]
     Z = qr(fliplr(factors[2]), thin=false)[1]
     q = Array(Float64, n1, n1)
@@ -120,3 +119,4 @@ function _candecomp_sgsd(T::StridedArray,
 
     return Tucker(T, factors, lbds, compute_res=compute_res)
 end
+

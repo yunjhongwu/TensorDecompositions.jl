@@ -2,7 +2,7 @@ println("CANDECOMP")
 r = 2
 T = _kruskal3_generator(r, (10, 20, 30), 1, false)
 
-println(" - Case 1: Alternating least square")
+println(" - case 1: alternating least square")
 @time factors = candecomp(T, r, algo="als")
 @test length(factors.factors) == ndims(T)
 for i in 1:ndims(T)
@@ -19,5 +19,4 @@ for i in 1:ndims(T)
 end
 @test length(factors.core) == r
 @test factors.error < 1e-5
-
 

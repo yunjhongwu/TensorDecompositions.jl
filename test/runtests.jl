@@ -15,7 +15,16 @@ println("Running tests:")
 
 include("test-hosvd.jl")
 include("test-candecomp.jl")
+include("test-sshopm.jl")
 include("test-nncp.jl")
 include("test-tensorcur3.jl")
 include("test-parafac2.jl")
 
+#=
+using Lint
+using TypeCheck
+lintpkg("TensorDecompositions")
+checkreturntypes(TensorDecompositions)
+checklooptypes(TensorDecompositions)
+checkmethodcalls(TensorDecompositions)
+=#
