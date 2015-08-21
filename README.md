@@ -12,7 +12,7 @@ A Julia implementation of tensor decomposition algorithms
 
 ### Available functions 
 
-1. The following functions for Tucker decompositions return a `Tucker`, which contains `factors::Vector{Matrix{Float64}}`, `core::Array{Float64}` (1-dimensional array for Kruskal tensor decompositions), and the relative reconstruction error `error::Float64`.
+1. The following functions for **Tucker decompositions**, except for `sshopm`, return a `Tucker`, which contains `factors::Vector{Matrix{Float64}}`, `core::Array{Float64}` (1-dimensional array for **Kruskal decompositions**), and the relative reconstruction error `error::Float64`.
 
   - **High-order SVD (HOSVD)** [3] `hosvd(T::StridedArray, r::Integer; compute_core::Bool=false)`; `hosvd` returns the residual only when `core=true` 
   - **Canonical polyadic decomposition (CANDECOMP/PARAFAC)** `candecomp(T::StridedArray, r::Integer, algo::String="als"; tol::Float64=1e-5, maxiter::Integer=100, hosvd_init::Bool=false, compute_res::Bool=true, verbose=true)`; this function provides two algorithms, set by `algo` argument, for fitting the CANDECOMP model:
@@ -22,7 +22,7 @@ A Julia implementation of tensor decomposition algorithms
 
   > Remark. Choose a smaller `r` if the above functions throw `ERROR: SingularException`.
 
-  - **Shifted symmetric higher-order power method (SS-HOPM)** [4] `sshopm(T::Union(StridedArray, (Matrix{Int64}, StridedVector)), alpha::Real tol::Float64=1e-5, maxiter::Integer=100, verbose::Bool=true)` solves the symmetric rank-1 approximation problem for symmetric tensors and returns an eigenpair of *T*, represented by a tuple `(Float64, Vector{Float64})`. This algorithm reduces to symmetric higher-order power method when `alpha=0`. Note that this functions does not check symmetry of input tensors. This implementation takes both dense representation `StridedArray` and sparse representation `(Matrix{Int64}, StridedVector, Integer)`, which contains indexes, as column vectors of the matrix in the first component of the tuple, corresponding values, and dimension of a mode.
+  - **Symmetric rank-1 approximation for symmetric tensors** by shifted symmetric higher-order power method (SS-HOPM) [4] `sshopm(T::Union(StridedArray, (Matrix{Int64}, StridedVector)), alpha::Real; tol::Float64=1e-5, maxiter::Integer=100, verbose::Bool=true)`. This function requires a shifting parameter `alpha` and returns an eigenpair of *T*, represented by a tuple `(Float64, Vector{Float64})`. Note that this functions does NOT check symmetry of input tensors. This implementation takes both dense representation `StridedArray` and sparse representation `(Matrix{Int64}, StridedVector, Integer)`, which contains indexes, as column vectors of the matrix in the first component of the tuple, corresponding values, and dimension of a mode.
 
 
 2. **Tensor-CUR** for 3-mode tensors [5] is a randomized algorithm and returns a `CUR`, which includes indexes of *c* slabs (along axis *slab_index*) and *r* fibers, matrix *U*, and the relative reconstruction error of slabs. Note that this function samples with replacement, and the numbers of repeated samples are stored in `Cweight` and `Rweight`.
