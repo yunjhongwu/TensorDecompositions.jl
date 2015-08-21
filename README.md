@@ -22,14 +22,14 @@ A Julia implementation of tensor decomposition algorithms
 
   > Remark. Choose a smaller `r` if the above functions throw `ERROR: SingularException`.
 
-  - **Shifted symmetric higher-order power method (SS-HOPM)** [4] `sshopm(T::StridedArray, alpha::Real tol::Float64=1e-5, maxiter::Integer=100, verbose::Bool=true)` solves the symmetric rank-1 approximation problem for symmetric tensors and returns an eigenpair of *T*, represented by a tuple `(Float64, Vector{Float64})`. This algorithm reduces to symmetric higher-order power method when `alpha=0`. Note that this functions does not check symmetry of input tensors. 
+  - **Shifted symmetric higher-order power method (SS-HOPM)** [4] `sshopm(T::Union(StridedArray, (Matrix{Int64}, StridedVector)), alpha::Real tol::Float64=1e-5, maxiter::Integer=100, verbose::Bool=true)` solves the symmetric rank-1 approximation problem for symmetric tensors and returns an eigenpair of *T*, represented by a tuple `(Float64, Vector{Float64})`. This algorithm reduces to symmetric higher-order power method when `alpha=0`. Note that this functions does not check symmetry of input tensors. This implementation takes both dense representation `StridedArray` and sparse representation `(Matrix{Int64}, StridedVector, Integer)`, which contains indexes, as column vectors of the matrix in the first component of the tuple, corresponding values, and dimension of a mode.
 
 
 2. **Tensor-CUR** for 3-mode tensors [5] is a randomized algorithm and returns a `CUR`, which includes indexes of *c* slabs (along axis *slab_index*) and *r* fibers, matrix *U*, and the relative reconstruction error of slabs. Note that this function samples with replacement, and the numbers of repeated samples are stored in `Cweight` and `Rweight`.
 
   - `tensorcur3(T::StridedArray, c::Integer, r::Integer, slab_index::Integer=3; compute_u::Bool=true)`
 
-3. **PARAFAC2** for 3-mode tensors by the alternating least square method [2] takes an array of matrices, which may not be equally sized, and factorizes the matrices under a constraint on row space. The below function returns a `PARAFAC2`, which contains factors and diagonal effects `D` of each matrix, a common loading matrix `A`, and the relative error.
+3. **PARAFAC2** for 3-mode tensors by the alternating least square method [2] takes an array of matrices, which may not be equally sized, and factorizes the matrices under a constraint on row space. The below function returns a `PARAFAC2`, which contains factors and diagonal effects *D* of each matrix, a common loading matrix *A*, and the relative error.
 
   - `parafac2{S<:Matrix}(X::Vector{S}, r::Integer; tol::Float64=1e-5, maxiter::Integer=100, verbose::Bool=true)`
 
@@ -46,10 +46,10 @@ Here is a quick example of code that fits the CANDECOMP model:
 ```julia
 julia> using TensorDecompositions
 
-julia> u = randn(10); v = randn(20); w = randn(30);
+julia> u = randn(10); v = randn(20); w = randn(30)
 
 # Generate a noisy rank-1 tensor
-julia> T = cat(3, map(x -> x * u * v', w)...) + 0.2 * randn(10, 20, 30);
+julia> T = cat(3, map(x -> x * u * v', w)...) + 0.2 * randn(10, 20, 30)
 
 julia> size(T)
 (10, 20, 30)
