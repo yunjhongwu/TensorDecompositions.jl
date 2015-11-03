@@ -4,7 +4,7 @@ module TensorDecompositions
     using TensorOperations
     using Distributions
 
-    export 
+    export
 
     hosvd,                   # High-order SVD
     candecomp,               # Canonical polyadic decomposition (CANDECOMP/PARAFAC)
@@ -14,6 +14,7 @@ module TensorDecompositions
     parafac2                 # PARAFAC2 model
 
     include("utils.jl")      # Sub-routines
+    include("tucker.jl")
     include("hosvd.jl")
     include("candecomp.jl")
     include("sshopm.jl")
