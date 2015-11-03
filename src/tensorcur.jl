@@ -28,7 +28,6 @@ immutable CUR
             res = mapslices(vecnorm, S - T, fiber_axes)[:] ./ mapslices(vecnorm, T, fiber_axes)[:]
         end
         new(Cindex, Cweight, [zip(ind2sub(fiber_size, Rindex)...)...], Rweight, U, res) 
-
     end
 end
 

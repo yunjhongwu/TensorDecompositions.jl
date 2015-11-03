@@ -1,22 +1,22 @@
-println("CANDECOMP")
+facts("CANDECOMP") do
 r = 2
 T = _kruskal3_generator(r, (10, 20, 30), 1, false)
 
-println(" - Case 1: Alternating least square")
-@time factors = candecomp(T, r, algo="als")
-@test length(factors.factors) == ndims(T)
-for i in 1:ndims(T)
-    @test size(factors.factors[i]) == (size(T, i), r)
+context("ALS (Alternating least squares)") do
+    @time factors = candecomp(T, r, algo="als")
+    @fact length(factors.factors) --> ndims(T)
+    @fact map(size, factors.factors) --> (collect(zip(size(T), (r, r, r)))...)
+    @fact length(factors.lmbds) --> r
+    @fact factors.error --> less_than(1e-5)
 end
-@test length(factors.core) == r
-@test factors.error < 1e-5
 
-println(" - Case 2: Simultaneous generalized Schur decomposition")
-@time factors = candecomp(T, r, algo="sgsd")
-@test length(factors.factors) == ndims(T)
-for i in 1:ndims(T)
-    @test size(factors.factors[i]) == (size(T, i), r)
+context("SGSD (Simultaneous generalized Schur decomposition)") do
+    @time factors = candecomp(T, r, algo="sgsd")
+    @fact length(factors.factors) --> ndims(T)
+    @fact map(size, factors.factors) --> (collect(zip(size(T), (r, r, r)))...)
+    @fact length(factors.lmbds) --> r
+    @fact length(factors.core) --> r
+    @fact factors.error --> less_than(1e-5)
 end
-@test length(factors.core) == r
-@test factors.error < 1e-5
 
+end

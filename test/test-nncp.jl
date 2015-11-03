@@ -1,11 +1,12 @@
-println("Non-negative CANDECOMP")
+facts("Non-negative CANDECOMP") do
+
 r = 2
 T = _kruskal3_generator(r, (10, 20, 30), 1, true)
 
 @time factors = nncp(T, r)
-@test length(factors.factors) == ndims(T)
-for i in 1:ndims(T)
-    @test size(factors.factors[i]) == (size(T, i), r)
+@fact length(factors.factors) --> ndims(T)
+@fact map(size, factors.factors) --> (collect(zip(size(T), (r, r, r)))...)
+@fact length(factors.core) --> r
+@fact factors.error --> less_than(0.05)
+
 end
-@test length(factors.core) == r
-@test factors.error < 0.05 
