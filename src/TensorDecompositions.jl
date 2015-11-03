@@ -3,7 +3,6 @@
 module TensorDecompositions
     using TensorOperations
     using Distributions
-    using Compat
 
     export 
 

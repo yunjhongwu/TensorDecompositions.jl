@@ -1,15 +1,15 @@
 immutable CUR
     Cindex::Vector{Int64}
     Cweight::Vector{Int64}
-    Rindex::Vector{(Int64, Int64)}
+    Rindex::Vector{NTuple{2, Int64}}
     Rweight::Vector{Int64}
     U::Matrix{Float64}
     error::Vector{Float64}
 
     function CUR(T::StridedArray,
                  slab_axis::Integer,
-                 fiber_axes::(Int64, Int64),
-                 fiber_size::(Int64, Int64),
+                 fiber_axes::NTuple{2, Int64},
+                 fiber_size::NTuple{2, Int64},
                  Cindex::Vector{Int64},
                  Cweight::Vector{Int64},
                  Rindex::Vector{Int64},

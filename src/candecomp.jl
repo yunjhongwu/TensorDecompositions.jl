@@ -4,13 +4,13 @@ function candecomp(T::StridedArray,
                    tol::Float64=1e-5,
                    maxiter::Integer=100,
                    compute_res::Bool=true,
-                   random_init::Bool=true,
-                   verbose::Bool=true) 
-    @compat algos = Dict{String, Function}( "als" => _candecomp_als, 
-                                            "sgsd" => _candecomp_sgsd)
+                   hosvd_init::Bool=false,
+                   verbose::Bool=true)
+    algos = Dict{String, Function}("als" => _candecomp_als, "sgsd" => _candecomp_sgsd)
     haskey(algos, algo) || error(string("Algorithm ", algo," does not exist."))
+
     num_modes = _check_tensor(T, r)
-    factors = random_init ? _random_init(size(T), r) : hosvd(T, r, compute_core=false).factors      
+    factors = hosvd_init ? hosvd(T, r, compute_core=false).factors : _random_init(size(T), r)
     return algos[algo](T, r, num_modes, factors, tol, maxiter, compute_res, verbose)
 end
 
@@ -119,4 +119,3 @@ function _candecomp_sgsd(T::StridedArray,
 
     return Tucker(T, factors, lbds, compute_res=compute_res)
 end
-
