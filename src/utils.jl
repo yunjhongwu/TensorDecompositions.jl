@@ -9,15 +9,31 @@ function _KhatriRao(A::Matrix{Float64}, B::Matrix{Float64})
     return [[kron(A[:, i], B[:, i])' for i in 1:size(A, 2)]...]'
 end
 
-function _unfold(T::StridedArray, mode::Integer)
-    num_modes = ndims(T)
-    mode <= num_modes && mode > 0 || error("Unable to unfold the tensor: invalid mode index")
+"""
+Unfolds the tensor into matrix, such that the specified
+group of modes becomes matrix rows and the other one becomes columns.
 
-    idx = [mode, 1:mode-1, mode+1:num_modes] 
-    return reshape(permutedims(T, idx), 
-                   size(T, mode), 
-                   prod(size(T)[idx[2:num_modes]]))
+  * `row_modes` vector of modes to be unfolded as rows
+  * `col_modes` vector of modes to be unfolded as columns
+"""
+function _unfold{T,N}(tnsr::StridedArray{T,N}, row_modes::Vector{Int}, col_modes::Vector{Int})
+    length(row_modes) + length(col_modes) == N ||
+        throw(ArgumentError("column and row modes should be disjoint subsets of 1:N"))
+
+    dims = size(tnsr)
+    return reshape(permutedims(tnsr, [row_modes; col_modes]),
+                   prod(dims[row_modes]), prod(dims[col_modes]))
 end
+
+"""
+Unfolds the tensor into matrix such that the specified mode becomes matrix row.
+"""
+_row_unfold{T,N}(tnsr::StridedArray{T,N}, mode::Integer) = _unfold(tnsr, [mode], [1:mode-1; mode+1:N])
+
+"""
+Unfolds the tensor into matrix such that the specified mode becomes matrix column.
+"""
+_col_unfold{T,N}(tnsr::StridedArray{T,N}, mode::Integer) = _unfold(tnsr, [1:mode-1; mode+1:N], [mode])
 
 function _iter_status(converged::Bool, niters::Integer, maxiter::Integer)
     println(converged ? string("Algorithm converged after ", string(niters)::ASCIIString, " iterations.") :

@@ -25,7 +25,7 @@ function _candecomp_als(T::StridedArray,
 
     gram = [F'F for F in factors]
     T_norm = vecnorm(T) 
-    T_flat = _unfold(T, num_modes)'
+    T_flat = _col_unfold(T, num_modes)
     T_size = size(T)
     niters = 0
     converged = false
@@ -38,7 +38,7 @@ function _candecomp_als(T::StridedArray,
             idx = [num_modes:-1:i + 1, i - 1:-1:1]
             VB = prod(T_size[idx]) 
             @inbounds V[1:VB, :] = reduce(_KhatriRao, factors[idx])
-            @inbounds factors[i] = _unfold(T, i) * V[1:VB, :] / reduce(.*, gram[idx])
+            @inbounds factors[i] = _row_unfold(T, i) * V[1:VB, :] / reduce(.*, gram[idx])
             lbds = sum(abs(factors[i]), 1)
             factors[i] ./= lbds
             gram[i] = factors[i]'factors[i]
@@ -108,7 +108,7 @@ function _candecomp_sgsd(T::StridedArray,
     
     factors[1] = Q[:, 1:r] * M[:, :, 1] 
     factors[2] = Z[:, n2 - r + 1:n2] * M[:, :, 2]'
-    factors[3] = _unfold(T, 3) * _KhatriRao(factors[2], factors[1]) / ((factors[2]'factors[2]) .* (factors[1]'factors[1]))
+    factors[3] = _row_unfold(T, 3) * _KhatriRao(factors[2], factors[1]) / ((factors[2]'factors[2]) .* (factors[1]'factors[1]))
     
     lbds = ones(1, r)
     for i in 1:num_modes

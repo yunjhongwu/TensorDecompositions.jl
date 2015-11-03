@@ -42,11 +42,11 @@ function parafac2{S<:Matrix}(X::Vector{S},
         T = cat(3, [P[i]' * H[i] for i in 1:m]...) 
 
         B = vcat(D...)
-        F = _unfold(T, 1) * _KhatriRao(B, A) / (G[3] .* G[2])
+        F = _row_unfold(T, 1) * _KhatriRao(B, A) / (G[3] .* G[2])
         G[1] = F'F
-        A = _unfold(T, 2) * _KhatriRao(B, F) / (G[3] .* G[1])
+        A = _row_unfold(T, 2) * _KhatriRao(B, F) / (G[3] .* G[1])
         G[2] = A'A
-        B = _unfold(T, 3) * _KhatriRao(A, F) / (G[2] .* G[1])
+        B = _row_unfold(T, 3) * _KhatriRao(A, F) / (G[2] .* G[1])
         G[3] = B'B
 
         D = Matrix{Float64}[B[i, :] for i in 1:m]

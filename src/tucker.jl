@@ -15,7 +15,7 @@ immutable Tucker
         res = NaN 
         if compute_res
             if length(S) > 0
-                res = vecnorm(_unfold(T, num_modes) - (factors[num_modes] .* S) * reduce(_KhatriRao, factors[num_modes-1:-1:1])')
+                res = vecnorm(_row_unfold(T, num_modes) - (factors[num_modes] .* S) * reduce(_KhatriRao, factors[num_modes-1:-1:1])')
             else
                 d = num_modes + 1
                 S = copy(T)

@@ -10,6 +10,7 @@ function _kruskal3_generator(r::Int64, s::Tuple,
     return reshape(reduce(_KhatriRao, [rnd(s[i], r) for i in length(s)-1:-1:1]) * rnd(s[end], r)', s...)
 end
 
+include("test_utils.jl")
 include("test-hosvd.jl")
 include("test-candecomp.jl")
 include("test-sshopm.jl")

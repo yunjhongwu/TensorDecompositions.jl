@@ -7,8 +7,8 @@ function hosvd(T::StridedArray,
     factors = Array(Matrix{Float64}, num_modes)
 
     for i in 1:ndims(T)
-        X = _unfold(T, i)
-        factors[i] = eigs(X * X', nev=r)[2]
+        X = _col_unfold(T, i)
+        factors[i] = eigs(At_mul_B(X, X), nev=r)[2]
     end
 
     factors = map(F -> mapslices(_check_sign, F, 1), factors)
