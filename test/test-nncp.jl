@@ -1,7 +1,7 @@
 facts("Non-negative CANDECOMP") do
 
 r = 2
-T = _kruskal3_generator(r, (10, 20, 30), 1, true)
+T = rand_kruskal3(r, (10, 20, 30), true)
 
 @time factors = nncp(T, r, compute_error=true)
 @fact length(factors.factors) --> ndims(T)

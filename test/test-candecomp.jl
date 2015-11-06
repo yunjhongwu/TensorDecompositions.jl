@@ -1,6 +1,6 @@
 facts("CANDECOMP") do
 r = 2
-T = _kruskal3_generator(r, (10, 20, 30), 1, false)
+T = rand_kruskal3(r, (10, 20, 30), false)
 
 context("Incorrect method") do
   @fact_throws candecomp(T, r, compute_error=true, method=:ALdS) ArgumentError

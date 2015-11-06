@@ -1,8 +1,7 @@
 facts("Tensor-CUR") do
 
 context("Small case") do
-    T = _kruskal3_generator(2, (20, 40, 60), 1, false)
-
+    T = rand_kruskal3(2, (20, 40, 60), false)
     for i in 1:3
         context("slab axis: $i") do
             @time factors = tensorcur3(T, 3, 15, i)
@@ -14,8 +13,7 @@ context("Small case") do
 end
 
 context("Large case without reconstruction") do
-    T = _kruskal3_generator(2, (100, 120, 60), 1, false)
-
+    T = rand_kruskal3(2, (100, 120, 60), false)
     @time factors = tensorcur3(T, 10, 200, compute_u=false)
     @fact sum(factors.Cweight) --> 10
     @fact sum(factors.Rweight) --> 200
