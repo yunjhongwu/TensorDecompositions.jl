@@ -118,10 +118,19 @@ function _check_sign(v::StridedVector)
     return sign(v[findmax(abs(v))[2]]) * v
 end
 
-function _check_tensor(T::StridedArray, r::Integer)
-    num_modes = ndims(T)
-    num_modes > 2 || error("This method does not support scalars, vectors, or matrices input.")
-    r <= minimum(size(T)) && r > 0 || error("r should satisfy 1 <= r <= minimum(size(T)).")
-    isreal(T) || error("This package currently only supports real-number-valued tensors.")
-    return num_modes
+"""
+Checks the validity of the core tensor dimensions.
+"""
+function _check_tensor{T<:Real,N}(tensor::StridedArray{T, N}, core_dims::NTuple{N, Int})
+    N > 2 || throw(ArgumentError("This method does not support scalars, vectors, or matrices input."))
+    for i in 1:N
+      0 < core_dims[i] <= size(tensor, i) || throw(ArgumentError("core_dims[$i]=$(core_dims[i]) given, 1 <= core_dims[$i] <= size(tensor, $i) = $(size(tensor, i)) expected."))
+    end
+    #isreal(T) || throw(ArgumentError("This package currently only supports real-number-valued tensors."))
+    return N
 end
+
+"""
+Checks the validity of the core tensor dimensions, where core tensor is `r^N` hypercube.
+"""
+_check_tensor{T<:Real,N}(tensor::StridedArray{T, N}, r::Integer) = _check_tensor(tensor, (fill(r, N)...))
