@@ -25,4 +25,10 @@ facts("Utilities") do
     @fact size(res) --> (200, 30)
   end
 
+    context("tensorcontractmatrices()") do
+        factors = TensorDecompositions._random_factors(size(T), (5, 2, 6))
+        res = tensorcontractmatrices(T, factors)
+        @fact size(res) --> (5, 2, 6)
+    end
+
 end

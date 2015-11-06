@@ -1,5 +1,5 @@
 """
-  Tucker decomposition of a tensor
+  Tucker decomposition of a N-mode tensor.
 """
 immutable Tucker 
     factors::Vector{Matrix{Float64}}
@@ -15,18 +15,12 @@ immutable Tucker
         res = NaN 
         if compute_res
             if length(S) > 0
-                res = vecnorm(_row_unfold(T, num_modes) - (factors[num_modes] .* S) * reduce(_KhatriRao, factors[num_modes-1:-1:1])')
+                res = vecnorm(T - tensorcontractmatrices(S, factors, collect(1:num_modes), transpose=true))
             else
                 d = num_modes + 1
-                S = copy(T)
-                for i in 1:num_modes
-                    S = tensorcontract(S, [1:num_modes], factors[i], [i, d], [1:i-1, d, i+1:num_modes])
-                end
+                S = tensorcontractmatrices(T, factors, collect(1:num_modes))
     
-                L = copy(S)
-                for i in 1:num_modes
-                    L = tensorcontract(L, [1:num_modes], factors[i], [d, i], [1:i-1, d, i+1:num_modes])
-                end
+                L = tensorcontractmatrices(S, factors, collect(1:num_modes), transpose=true)
                 res = vecnorm(L - T)
             end
         end

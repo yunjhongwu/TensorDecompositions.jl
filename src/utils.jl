@@ -1,5 +1,56 @@
 # utilities
 
+tensorcontractmatrix{T,N}(tnsr::StridedArray{T,N}, mtx::Matrix{T}, n::Int;
+                          transpose::Bool=false, method::Symbol=:BLAS) = begin
+    #info("TTM: tnsr=$(size(tnsr)) mtx=$(size(mtx)) n=$n transpose=$transpose method=$method")
+    tensorcontract(tnsr, 1:N,
+                   mtx, [transpose ? N+1 : n, transpose ? n : N+1],
+                   [1:(n-1); N+1; (n+1):N], method=method)
+end
+
+tensorcontractmatrix!{T,N}(dest::StridedArray{T,N}, src::StridedArray{T,N},
+                           mtx::Matrix{T}, n::Int; transpose::Bool=false, method::Symbol=:BLAS) = begin
+    #info("TTM: dest=$(size(dest)) src=$(size(src)) mtx=$(size(mtx)) n=$n transpose=$transpose method=$method")
+    tensorcontract!(1, src, 1:N, 'N',
+                    mtx, [transpose ? N+1 : n, transpose ? n : N+1], 'N',
+                    0, dest, [1:(n-1); N+1; (n+1):N], method=method)
+end
+
+"""
+Contract N-mode tensor and M matrices.
+
+  * `dest` array to hold the result
+  * `src`  source tensor to contract
+  * `matrices` matrices to contract
+  * `modes` corresponding modes of matrices to contract
+  * `transpose` if true, matrices are contracted along their columns
+"""
+function tensorcontractmatrices!{T,N}(dest::Array{T,N}, src::Array{T,N}, matrices::Any,
+                            modes::Any = 1:length(matrices); transpose::Bool=false, method::Symbol=:BLAS)
+    for mtx_ix in 1:length(matrices)-1
+        src = tensorcontractmatrix(src, matrices[mtx_ix], modes[mtx_ix],
+                                   transpose=transpose, method=method)
+    end
+    tensorcontractmatrix!(dest, src, matrices[end], modes[end],
+                          transpose=transpose, method=method)
+end
+
+"""
+Contract N-mode tensor and M matrices.
+
+  * `tensor` tensor to contract
+  * `matrices` matrices to contract
+  * `modes` corresponding modes of matrices to contract
+  * `transpose` if true, matrices are contracted along their columns
+"""
+tensorcontractmatrices{T,N}(tensor::Array{T,N}, matrices::Any,
+                            modes::Any = 1:length(matrices);
+                            transpose::Bool=false, method::Symbol=:BLAS) =
+    reduce(tensor, 1:length(matrices)) do tnsr, mtx_ix
+        tensorcontractmatrix(tnsr, matrices[mtx_ix], modes[mtx_ix],
+                             transpose=transpose, method=method)
+    end
+
 """
 Generates random factor matrices for Tucker/CANDECOMP etc decompositions.
 
