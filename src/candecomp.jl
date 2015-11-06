@@ -34,17 +34,17 @@ function _candecomp_als(T::StridedArray,
     V = Array(Float64, div(length(T), minimum(T_size)), r)
     while !converged && niters < maxiter
         VB = 0
-        for i in 1:num_modes
-            idx = [num_modes:-1:i + 1, i - 1:-1:1]
+        @inbounds for i in 1:num_modes
+            idx = [num_modes:-1:i + 1; i - 1:-1:1]
             VB = prod(T_size[idx]) 
-            @inbounds V[1:VB, :] = reduce(_KhatriRao, factors[idx])
-            @inbounds factors[i] = _row_unfold(T, i) * V[1:VB, :] / reduce(.*, gram[idx])
+            V[1:VB, :] = reduce(_KhatriRao, factors[idx])
+            factors[i] = _row_unfold(T, i) * V[1:VB, :] / reduce(.*, gram[idx])
             lbds = sum(abs(factors[i]), 1)
             factors[i] ./= lbds
-            gram[i] = factors[i]'factors[i]
+            At_mul_B!(gram[i], factors[i], factors[i])
         end
         res_old = res
-        @inbounds res = vecnorm(V[1:VB, :] * (factors[num_modes] .* lbds)' - T_flat)
+        res = vecnorm(V[1:VB, :] * (factors[num_modes] .* lbds)' - T_flat)
         converged = abs(res - res_old) < tol * res_old
         niters += 1
     end
@@ -68,7 +68,7 @@ function _candecomp_sgsd(T::StridedArray,
     (n1, n2, n3) = size(T)
     IB = (min(n1 - 1, r), (n2 == r) ? 2 : 1)
     Q = qr(factors[1], thin=false)[1]
-    Z = qr(fliplr(factors[2]), thin=false)[1]
+    Z = qr(flipdim(factors[2], 2), thin=false)[1]
     q = Array(Float64, n1, n1)
     z = Array(Float64, n2, n2)
     R = tensorcontract(tensorcontract(T, [1, 2, 3], Q, [1, 4], [4, 2, 3]), [1, 2, 3], Z, [2, 4], [1, 4, 3])
@@ -76,16 +76,16 @@ function _candecomp_sgsd(T::StridedArray,
     res = vecnorm(T)
     converged = false
     niters = 0
-    while !converged && niters < maxiter
-        q = eye(n1)::Matrix{Float64}
-        z = eye(n2)::Matrix{Float64}
+    @inbounds while !converged && niters < maxiter
+        q = eye(n1)
+        z = eye(n2)
 
         for i in 1:IB[1]
-            @inbounds q[:, i:n1]::Matrix{Float64} *= svd(q[:, i:n1]' * slice(R, :, n2 - r + i, :))[1]
+            q[:, i:n1] *= svd(q[:, i:n1]' * slice(R, :, n2 - r + i, :))[1]
         end
         R = tensorcontract(R, [1, 2, 3], q, [1, 4], [4, 2, 3])
         for i in r:-1:IB[2]
-            @inbounds z[:, 1:n2 - r + i]::Matrix{Float64} *= fliplr(svd(slice(R, i, :, :)' * z[:, 1:n2 - r + i])[3])
+            z[:, 1:n2 - r + i] *= flipdim(svd(slice(R, i, :, :)' * z[:, 1:n2 - r + i])[3], 2)
         end
         Q *= q
         Z *= z
@@ -101,9 +101,9 @@ function _candecomp_sgsd(T::StridedArray,
 
     R = R[1:r, n2-r+1:n2, :]
     M = cat(3, eye(r, r), eye(r, r))
-    for i in r - 1:-1:1, j = i + 1:r
+    @inbounds for i in r - 1:-1:1, j = i + 1:r
         d = i + 1:j - 1
-        @inbounds M[i, j, :] = hcat(R[j, j, :][:], R[i, i, :][:]) \ (R[i, j, :][:] - mapslices(R3 -> sum(M[i, d, 1] * (diag(R3)[d] .* M[d, j, 2])), R, [1, 2])[:])
+        M[i, j, :] = hcat(R[j, j, :][:], R[i, i, :][:]) \ (R[i, j, :][:] - mapslices(R3 -> sum(M[i, d, 1] * (diag(R3)[d] .* M[d, j, 2])), R, [1, 2])[:])
     end
 
     factors[1] = Q[:, 1:r] * M[:, :, 1]

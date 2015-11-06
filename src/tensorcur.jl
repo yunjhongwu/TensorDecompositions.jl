@@ -6,7 +6,7 @@ immutable CUR
     U::Matrix{Float64}
     error::Vector{Float64}
 
-    function CUR(T::StridedArray,
+    function CUR(T::StridedArray{Float64},
                  slab_axis::Integer,
                  fiber_axes::NTuple{2, Int64},
                  fiber_size::NTuple{2, Int64},
@@ -56,7 +56,7 @@ function tensorcur3(T::StridedArray,
 
     U = compute_u ? Array(Float64, r, c) : zeros(0, 0)
     if compute_u
-        P = Cweight * Rweight' ./ (p[Cindex] *  q[Rindex]')
+        P = (Cweight*Rweight') ./ (p[Cindex]*q[Rindex]')
         W = squeeze(permutedims(mapslices(slab -> slab[Rindex],
                                 slicedim(T, slab_axis, Cindex), fiber_axes),
                                 [slab_axis, fiber_axes[1], fiber_axes[2]]), 3)

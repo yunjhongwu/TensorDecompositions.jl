@@ -70,9 +70,16 @@ Returns:
 """
 _random_factors{N}(dims::NTuple{N, Int}, r::Integer) = _random_factors(dims, (fill(r, N)...))
 
-function _KhatriRao(A::Matrix{Float64}, B::Matrix{Float64})
-    size(A, 2) == size(B, 2) || error("Input matrices should have the same number of columns.")
-    return [[kron(A[:, i], B[:, i])' for i in 1:size(A, 2)]...]'
+"""
+Calculates Khatri-Rao product of two matrices (column-wise Kronecker product).
+"""
+function _KhatriRao{T}(A::Matrix{T}, B::Matrix{T})
+    size(A, 2) == size(B, 2) || throw(DimensionMismatch("Input matrices should have the same number of columns."))
+    res = Matrix{T}(size(A, 1) * size(B, 1), size(A, 2))
+    for i in 1:size(A, 2)
+        res[:, i] = kron(A[:, i], B[:, i])
+    end
+    return res
 end
 
 """

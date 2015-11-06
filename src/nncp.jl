@@ -11,7 +11,7 @@ function nncp(T::StridedArray,
     factors = [abs(F) * (T_norm ^ (1/num_modes) / vecnorm(F)) for F::Matrix{Float64} in _random_factors(size(T), r)]
     factors_old = deepcopy(factors)
     factors_exp = deepcopy(factors)
-    gram = [F'F for F in factors]
+    gram = Matrix{Float64}[F'F for F in factors]
 
     niters = 0
     converged = false
@@ -28,12 +28,12 @@ function nncp(T::StridedArray,
     while !converged && niters < maxiter
         LB_old = copy(LB)
         for i in 1:num_modes
-            idx = [num_modes:-1:i+1, i-1:-1:1]
+            idx = [num_modes:-1:i+1; i-1:-1:1]
             U = reduce(.*, gram[idx])
             LB[i] = vecnorm(U)
             M = _row_unfold(T, i) * reduce(_KhatriRao, factors[idx])
             factors[i] = max(0, factors_exp[i] - (factors_exp[i] * U - M) * (1 / LB[i]))
-            gram[i] = factors[i]'factors[i]
+            At_mul_B!(gram[i], factors[i], factors[i])
         end
 
         obj = sum(gram[num_modes] .* U) - 4 * sum(factors[num_modes] .* M)

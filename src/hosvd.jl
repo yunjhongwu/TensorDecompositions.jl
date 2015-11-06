@@ -4,13 +4,10 @@ function hosvd(T::StridedArray,
 
     num_modes = _check_tensor(T, r)
 
-    factors = Array(Matrix{Float64}, num_modes)
-
-    for i in 1:ndims(T)
+    factors = map(1:N) do i
         X = _col_unfold(T, i)
-        factors[i] = eigs(At_mul_B(X, X), nev=r)[2]
+        f = eigs(X'X, nev=core_dims[i])[2]
+        mapslices(_check_sign, f, 1)
     end
-
-    factors = map(F -> mapslices(_check_sign, F, 1), factors)
     return Tucker(T, factors, compute_res=compute_core)
 end
