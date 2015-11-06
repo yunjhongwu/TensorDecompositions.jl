@@ -24,14 +24,14 @@ function _candecomp_als(T::StridedArray,
                         verbose::Bool)
 
     gram = [F'F for F in factors]
-    T_norm = vecnorm(T) 
+    T_norm = vecnorm(T)
     T_flat = _col_unfold(T, num_modes)
     T_size = size(T)
     niters = 0
     converged = false
-    res = T_norm 
+    res = T_norm
     lbds = Array(Float64, r)
-    V = Array(Float64, div(length(T), minimum(T_size)), r) 
+    V = Array(Float64, div(length(T), minimum(T_size)), r)
     while !converged && niters < maxiter
         VB = 0
         for i in 1:num_modes
@@ -43,9 +43,9 @@ function _candecomp_als(T::StridedArray,
             factors[i] ./= lbds
             gram[i] = factors[i]'factors[i]
         end
-        res_old = res 
-        @inbounds res = vecnorm(V[1:VB, :] * (factors[num_modes] .* lbds)' - T_flat) 
-        converged = abs(res - res_old) < tol * res_old 
+        res_old = res
+        @inbounds res = vecnorm(V[1:VB, :] * (factors[num_modes] .* lbds)' - T_flat)
+        converged = abs(res - res_old) < tol * res_old
         niters += 1
     end
 
@@ -93,7 +93,7 @@ function _candecomp_sgsd(T::StridedArray,
 
         res_old = res
         res = vecnorm(tril(squeeze(sum(R .^ 2, 3), 3), n2 - r - 1))
-        converged = abs(res - res_old) < tol 
+        converged = abs(res - res_old) < tol
         niters += 1
     end
 
@@ -105,14 +105,14 @@ function _candecomp_sgsd(T::StridedArray,
         d = i + 1:j - 1
         @inbounds M[i, j, :] = hcat(R[j, j, :][:], R[i, i, :][:]) \ (R[i, j, :][:] - mapslices(R3 -> sum(M[i, d, 1] * (diag(R3)[d] .* M[d, j, 2])), R, [1, 2])[:])
     end
-    
-    factors[1] = Q[:, 1:r] * M[:, :, 1] 
+
+    factors[1] = Q[:, 1:r] * M[:, :, 1]
     factors[2] = Z[:, n2 - r + 1:n2] * M[:, :, 2]'
     factors[3] = _row_unfold(T, 3) * _KhatriRao(factors[2], factors[1]) / ((factors[2]'factors[2]) .* (factors[1]'factors[1]))
     
     lbds = ones(1, r)
     for i in 1:num_modes
-        lbd = mapslices(vecnorm, factors[i], 1) 
+        lbd = mapslices(vecnorm, factors[i], 1)
         factors[i] ./= lbd
         lbds .*= lbd
     end
