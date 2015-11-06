@@ -1,28 +1,34 @@
-immutable PARAFAC2 
-    factors::Array{Matrix{Float64}, 1}
-    D::Array{Matrix{Float64}, 1}
-    A::Matrix{Float64}
-    error::Float64
+"""
+Parallel Factor Analysis (PARAFAC) decomposition
+"""
+immutable PARAFAC2{T<:Number, N} <: TensorDecomposition{T, N}
+    factors::NTuple{N, Matrix{T}}
+    D::Vector{Matrix{T}}
+    A::Matrix{T}
+    props::Dict{Symbol, Any}
 
-    function PARAFAC2{S<:Matrix}(X::Vector{S},
-                                 F::Matrix{Float64},
-                                 D::Vector{Matrix{Float64}},
-                                 A::Matrix{Float64},
-                                 res::Float64)
-
-        factors = map(function (Xi, Di)
+    function Base.call{T}(::Type{PARAFAC2},
+                   X::Vector{Matrix{T}},
+                   F::Matrix{Float64},
+                   D::Vector{Matrix{Float64}},
+                   A::Matrix{Float64})
+        factors = (map(function (Xi, Di)
             U = svd(A_mul_Bt(F .* Di, Xi * A))
             U[3] * (U[1]'F)
-        end, X, D)
-        return new(factors, D, A, sqrt(res) / vecnorm(vcat(X...)))
+        end, X, D)...)
+        return new{T, length(factors)}(factors, D, A, Dict{Symbol,Any}())
     end
 
 end
 
+"""
+PARAFAC2 model
+"""
 function parafac2{S<:Matrix}(X::Vector{S},
                              r::Integer;
                              tol::Float64=1e-5,
                              maxiter::Integer=100,
+                             compute_error::Bool=false,
                              verbose::Bool=true)
     m = length(X)
     n = size(X[1], 2)
@@ -65,5 +71,9 @@ function parafac2{S<:Matrix}(X::Vector{S},
     end
 
     verbose && _iter_status(converged, niters, maxiter)
-    return PARAFAC2(X, F, D, A, resid)
+    res = PARAFAC2(X, F, D, A)
+    if compute_error
+        _set_rel_residue(res, sqrt(resid) / vecnorm(vcat(X...)))
+    end
+    return res
 end

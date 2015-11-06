@@ -1,7 +1,11 @@
+"""
+Non-negative CANDECOMP tensor decomposition.
+"""
 function nncp(T::StridedArray,
               r::Integer;
               tol::Float64=1e-4,
               maxiter::Integer=100,
+              compute_error::Bool=false,
               verbose::Bool=true)
 
     minimum(T) >= 0 || error("Input tensor must be nonnegative.")
@@ -55,5 +59,9 @@ function nncp(T::StridedArray,
 
     verbose && _iter_status(converged, niters, maxiter)
 
-    return Tucker(T, factors, ones(1, r)) 
+    res = CANDECOMP((factors...), ones(r))
+    if compute_error
+      _set_rel_residue(res, T)
+    end
+    return res
 end

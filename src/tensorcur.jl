@@ -1,4 +1,7 @@
-immutable CUR
+"""
+CUR (columns-U-rows) 3-tensor decomposition.
+"""
+immutable CUR <: TensorDecomposition{Float64, 3}
     Cindex::Vector{Int64}
     Cweight::Vector{Int64}
     Rindex::Vector{NTuple{2, Int64}}
@@ -31,6 +34,9 @@ immutable CUR
     end
 end
 
+"""
+Calculates CUR decomposition for 3-mode tensors.
+"""
 function tensorcur3(T::StridedArray,
                     c::Integer, r::Integer,
                     slab_axis::Integer=3;

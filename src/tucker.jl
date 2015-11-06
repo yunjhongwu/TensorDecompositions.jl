@@ -1,30 +1,31 @@
 """
   Tucker decomposition of a N-mode tensor.
 """
-immutable Tucker 
-    factors::Vector{Matrix{Float64}}
-    core::StridedArray
-    error::Float64
+immutable Tucker{T<:Number, N} <: TensorDecomposition{T, N}
+    factors::NTuple{N, Matrix{T}} # factor matrices
+    core::StridedArray{T, N}      # core tensor
+    props::Dict{Symbol, Any}      # extra properties
 
-    function Tucker(T::StridedArray,
-                    factors::Vector{Matrix{Float64}}, 
-                    S::Array{Float64}=zeros(0);
-                    compute_res::Bool=true)
+    Tucker(factors::NTuple{N, Matrix{T}}, core::StridedArray{T, N}) =
+        new(factors, core, Dict{Symbol, Any}())
 
-        num_modes = ndims(T)
-        res = NaN 
-        if compute_res
-            if length(S) > 0
-                res = vecnorm(T - tensorcontractmatrices(S, factors, collect(1:num_modes), transpose=true))
-            else
-                d = num_modes + 1
-                S = tensorcontractmatrices(T, factors, collect(1:num_modes))
-    
-                L = tensorcontractmatrices(S, factors, collect(1:num_modes), transpose=true)
-                res = vecnorm(L - T)
-            end
-        end
-        new(factors, S, res / vecnorm(T)) 
-    end
+    Base.call{T,N}(::Type{Tucker}, factors::NTuple{N, Matrix{T}}, core::StridedArray{T, N}) =
+        Tucker{T,N}(factors, core)
 end
 
+"""
+Returns the core tensor of Tucker decomposition.
+"""
+core(decomp::Tucker) = decomp.core
+
+"""
+Returns the factor matrices of Tucker decomposition.
+"""
+factors(decomp::Tucker) = decomp.factors
+
+"""
+Composes a full tensor from Tucker decomposition.
+"""
+compose(decomp::Tucker) = tensocontractmatrices(core(decomp), factors(decomp), transpose=true)
+
+compose!{T,N}(dest::Array{T,N}, decomp::Tucker{T,N}) = tensorcontractmatrices!(dest, core(decomp), factors(decomp), transpose=true)
