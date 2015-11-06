@@ -37,7 +37,7 @@ function _candecomp_als(T::StridedArray,
         @inbounds for i in 1:num_modes
             idx = [num_modes:-1:i + 1; i - 1:-1:1]
             VB = prod(T_size[idx]) 
-            V[1:VB, :] = reduce(_KhatriRao, factors[idx])
+            V[1:VB, :] = reduce(khatrirao, factors[idx])
             factors[i] = _row_unfold(T, i) * V[1:VB, :] / reduce(.*, gram[idx])
             lbds = sum(abs(factors[i]), 1)
             factors[i] ./= lbds
@@ -108,7 +108,7 @@ function _candecomp_sgsd(T::StridedArray,
 
     factors[1] = Q[:, 1:r] * M[:, :, 1]
     factors[2] = Z[:, n2 - r + 1:n2] * M[:, :, 2]'
-    factors[3] = _row_unfold(T, 3) * _KhatriRao(factors[2], factors[1]) / ((factors[2]'factors[2]) .* (factors[1]'factors[1]))
+    factors[3] = _row_unfold(T, 3) * khatrirao(factors[2], factors[1]) / ((factors[2]'factors[2]) .* (factors[1]'factors[1]))
     
     lbds = ones(1, r)
     for i in 1:num_modes

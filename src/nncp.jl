@@ -31,7 +31,7 @@ function nncp(T::StridedArray,
             idx = [num_modes:-1:i+1; i-1:-1:1]
             U = reduce(.*, gram[idx])
             LB[i] = vecnorm(U)
-            M = _row_unfold(T, i) * reduce(_KhatriRao, factors[idx])
+            M = _row_unfold(T, i) * reduce(khatrirao, factors[idx])
             factors[i] = max(0, factors_exp[i] - (factors_exp[i] * U - M) * (1 / LB[i]))
             At_mul_B!(gram[i], factors[i], factors[i])
         end
