@@ -7,8 +7,8 @@ function nncp(T::StridedArray,
     minimum(T) >= 0 || error("Input tensor must be nonnegative.")
     num_modes = _check_tensor(T, r)
     T_norm = vecnorm(T)
-    
-    factors = [abs(F) * (T_norm ^ (1/num_modes) / vecnorm(F)) for F::Matrix{Float64} in _random_init(size(T), r)]
+
+    factors = [abs(F) * (T_norm ^ (1/num_modes) / vecnorm(F)) for F::Matrix{Float64} in _random_factors(size(T), r)]
     factors_old = deepcopy(factors)
     factors_exp = deepcopy(factors)
     gram = [F'F for F in factors]

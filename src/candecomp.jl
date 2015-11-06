@@ -10,7 +10,7 @@ function candecomp(T::StridedArray,
     haskey(algos, algo) || error(string("Algorithm ", algo," does not exist."))
 
     num_modes = _check_tensor(T, r)
-    factors = hosvd_init ? hosvd(T, r, compute_core=false).factors : _random_init(size(T), r)
+    factors = hosvd_init ? hosvd(T, r, compute_core=false).factors : _random_factors(size(T), r)
     return algos[algo](T, r, num_modes, factors, tol, maxiter, compute_res, verbose)
 end
 

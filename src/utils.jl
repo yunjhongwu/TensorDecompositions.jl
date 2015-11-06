@@ -1,8 +1,23 @@
 # utilities
 
-function _random_init(d::Tuple, r::Integer)
-    return [randn(i, r)::Matrix{Float64} for i in d]
-end
+"""
+Generates random factor matrices for Tucker/CANDECOMP etc decompositions.
+
+  * `orig_dims` original tensor dimensions
+  * `core_dims` core tensor dimensions
+
+Returns:
+  * a vector of `N` (orig[n], core[n])-sized matrices
+"""
+_random_factors{N}(orig_dims::NTuple{N, Int}, core_dims::NTuple{N, Int}) = Matrix{Float64}[randn(dims...) for dims in zip(orig_dims, core_dims)]
+
+"""
+Generates random factor matrices for Tucker/CANDECOMP decompositions if core tensor is `r^N` hypercube.
+
+Returns:
+  * a vector of `N` (orig[n], r)-sized matrices
+"""
+_random_factors{N}(dims::NTuple{N, Int}, r::Integer) = _random_factors(dims, (fill(r, N)...))
 
 function _KhatriRao(A::Matrix{Float64}, B::Matrix{Float64})
     size(A, 2) == size(B, 2) || error("Input matrices should have the same number of columns.")
