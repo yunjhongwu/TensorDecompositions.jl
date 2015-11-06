@@ -109,8 +109,8 @@ Unfolds the tensor into matrix such that the specified mode becomes matrix colum
 _col_unfold{T,N}(tnsr::StridedArray{T,N}, mode::Integer) = _unfold(tnsr, [1:mode-1; mode+1:N], [mode])
 
 function _iter_status(converged::Bool, niters::Integer, maxiter::Integer)
-    println(converged ? string("Algorithm converged after ", string(niters)::ASCIIString, " iterations.") :
-                        string("Warning: Maximum number (", string(maxiter)::ASCIIString, ") of iterations exceeded."))
+    converged ? info("Algorithm converged after $(niters) iterations.") :
+                warn("Maximum number $(maxiter) of iterations exceeded.")
 end
 
 _check_sign(v::StridedVector) = sign(v[findmax(abs(v))[2]]) * v
