@@ -3,6 +3,7 @@
 module TensorDecompositions
     using TensorOperations
     using Distributions
+    using ProgressMeter
     using Base.Cartesian
 
     export
@@ -23,6 +24,7 @@ module TensorDecompositions
     candecomp,               # Canonical polyadic decomposition (CANDECOMP/PARAFAC)
     sshopm,                  # Shifted symmetric higher-order power method
     nncp,                    # Non-negative CANDECOMP
+    spnntucker,              # sparse (semi) non-negative Tucker
     tensorcur3,              # Tensor-CUR for 3-mode tensors
     parafac2                 # PARAFAC2 model
 
@@ -36,5 +38,6 @@ module TensorDecompositions
     include("nncp.jl")
     include("tensorcur.jl")
     include("parafac2.jl")
+    include("spnntucker.jl")
 
 end
