@@ -8,6 +8,7 @@ module TensorDecompositions
     export
 
     # types
+    SparseArray,
     TensorDecomposition, PARAFAC2, CANDECOMP, CUR, Tucker,
 
     # TensorDecomposition methods
