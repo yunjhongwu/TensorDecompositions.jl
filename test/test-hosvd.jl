@@ -16,4 +16,10 @@ context("core reconstruction and residuals") do
     @fact rel_residue(factors) --> less_than(1e-5)
 end
 
+context("core dimension equal to the original dimension") do
+    @time factors = hosvd(randn(10, 20, 30), (10, 20, 5), compute_error=true)
+    @fact size(factors.core) --> (10, 20, 5)
+    @fact rel_residue(factors) --> less_than(1e-5)
+end
+
 end
