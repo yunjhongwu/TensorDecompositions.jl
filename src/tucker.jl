@@ -26,6 +26,22 @@ factors(decomp::Tucker) = decomp.factors
 """
 Composes a full tensor from Tucker decomposition.
 """
-compose(decomp::Tucker) = tensocontractmatrices(core(decomp), factors(decomp), transpose=true)
+compose(decomp::Tucker) = tensorcontractmatrices(core(decomp), factors(decomp), transpose=true)
 
 compose!{T,N}(dest::Array{T,N}, decomp::Tucker{T,N}) = tensorcontractmatrices!(dest, core(decomp), factors(decomp), transpose=true)
+
+"""
+Scale the factors and core of the initial decomposition.
+Each decompositon component is scaled proportional to the number of its elements.
+After scaling, `|decomp|=s`
+"""
+function rescale!{T,N}(decomp::Tucker{T,N}, s::T)
+    total_length = length(decomp.core) + sum(map(length, decomp.factors)) # total elements in the decomposition
+    for factor in decomp.factors
+        f_s = s^(length(factor)/total_length)/vecnorm(factor)
+        map!(x -> x*f_s, factor)
+    end
+    core_s = s^(length(decomp.core)/total_length)/vecnorm(decomp.core)
+    map!(x -> x*core_s, decomp.core)
+    return decomp
+end
