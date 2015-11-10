@@ -26,6 +26,7 @@ module TensorDecompositions
     tensorcur3,              # Tensor-CUR for 3-mode tensors
     parafac2                 # PARAFAC2 model
 
+    include("array_pool.jl")
     include("utils.jl")
     include("abstract_decomposition.jl")
     include("tucker.jl")
