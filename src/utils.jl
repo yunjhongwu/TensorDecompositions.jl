@@ -1,4 +1,5 @@
 # utilities
+_as_vector{T}(arr::Array{T}) = reinterpret(T, arr, (length(arr),))::Vector{T}
 
 tensorcontractmatrix{T,N}(tnsr::StridedArray{T,N}, mtx::Matrix{T}, n::Int;
                           transpose::Bool=false, method::Symbol=:BLAS) = begin
