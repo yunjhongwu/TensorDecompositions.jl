@@ -1,5 +1,6 @@
 facts("SS-HOPM") do
 
+srand(1)
 eigvec = randn(20)
 eigval = vecnorm(eigvec)
 eigvec /= eigval

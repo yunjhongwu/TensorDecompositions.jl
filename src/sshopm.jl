@@ -24,7 +24,7 @@ function Base.convert{T,N}(::Type{SparseArray}, arr::DenseArray{T,N})
     vals = Float64[]
 
     for i in eachindex(arr)
-        if arr[i] > 0
+        if arr[i] != 0
             push!(vals, arr[i])
             for j in ind2sub(arr, i)
                 push!(pos, j)
@@ -42,7 +42,7 @@ for computing tensor eigenpars.
 function sshopm{T,N}(tnsr::AbstractArray{T,N},
                 alpha::Real;
                 tol::Float64=1e-5,
-                maxiter::Int=100,
+                maxiter::Int=1000,
                 verbose::Bool=false)
 
     r = size(tnsr, 1)
