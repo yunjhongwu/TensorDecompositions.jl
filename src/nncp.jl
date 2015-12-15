@@ -1,18 +1,18 @@
 """
 Non-negative CANDECOMP tensor decomposition.
 """
-function nncp(T::StridedArray,
+function nncp(tnsr::StridedArray,
               r::Integer;
               tol::Float64=1e-4,
               maxiter::Integer=100,
               compute_error::Bool=false,
               verbose::Bool=true)
 
-    minimum(T) >= 0 || error("Input tensor must be nonnegative.")
-    num_modes = _check_tensor(T, r)
-    T_norm = vecnorm(T)
+    minimum(tnsr) >= 0 || error("Input tensor must be nonnegative.")
+    num_modes = _check_tensor(tnsr, r)
+    T_norm = vecnorm(tnsr)
 
-    factors = [abs(F) * (T_norm ^ (1/num_modes) / vecnorm(F)) for F::Matrix{Float64} in _random_factors(size(T), r)]
+    factors = [abs(F) * (T_norm ^ (1/num_modes) / vecnorm(F)) for F::Matrix{Float64} in _random_factors(size(tnsr), r)]
     factors_old = deepcopy(factors)
     factors_exp = deepcopy(factors)
     gram = Matrix{Float64}[F'F for F in factors]
@@ -35,7 +35,7 @@ function nncp(T::StridedArray,
             idx = [num_modes:-1:i+1; i-1:-1:1]
             U = reduce(.*, gram[idx])
             LB[i] = vecnorm(U)
-            M = _row_unfold(T, i) * reduce(khatrirao, factors[idx])
+            M = _row_unfold(tnsr, i) * reduce(khatrirao, factors[idx])
             factors[i] = max(0, factors_exp[i] - (factors_exp[i] * U - M) * (1 / LB[i]))
             At_mul_B!(gram[i], factors[i], factors[i])
         end
@@ -61,7 +61,7 @@ function nncp(T::StridedArray,
 
     res = CANDECOMP((factors...), ones(r))
     if compute_error
-      _set_rel_residue(res, T)
+      _set_rel_residue(res, tnsr)
     end
     return res
 end

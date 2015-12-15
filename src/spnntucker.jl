@@ -93,8 +93,8 @@ _spnntucker_project(::Type{Val{:SignedBounded}}, x, lambda, bound) = x > bound ?
 # update core tensor of dest
 function _spnntucker_update_core!{T,N,PRJ}(prj::Type{Val{PRJ}},
     helper::SPNNTuckerHelper{T,N}, dest::Tucker{T,N}, src::Tucker{T,N},
-    src_factor2s::Vector{Matrix{T}}, n::Int
-)
+    src_factor2s::Vector{Matrix{T}}, n::Int)
+
     tensorXfactors_all = _as_vector(n < N ?
         tensorcontractmatrices!(acquire!(helper, helper.core_dims),
                                 helper.tnsrXfactors_low[n], dest.factors[(n+1):N], (n+1):N) :
@@ -166,9 +166,9 @@ function _spnntucker_update_proxy_factor!{T,N}(
 )
     factor_p = proxy.factors[n]
     factor0 = prev.factors[n]
-    factor = cur.factors[n]
+    factor1 = cur.factors[n]
     @simd for i in eachindex(factor_p)
-        @inbounds factor_p[i] = factor[i] + w*(factor[i]-factor0[i])
+        @inbounds factor_p[i] = factor1[i] + w*(factor1[i]-factor0[i])
     end
     factor_p
 end
@@ -206,7 +206,7 @@ and sparse nonnegative factor matrices `factors`.
 
 Returns:
   * `Tucker` decomposition object with additional properties:
-    * `:conv` method convergence indicator
+    * `:converged` method convergence indicator
     * `:rel_residue` the Frobenius norm of the residual error `l(Z,U)` plus regularization penalty (if any)
     * `:niter` number of iterations
     * `:nredo` number of times `core` and `factor` were recalculated to avoid the increase in objective function
@@ -306,12 +306,12 @@ function spnntucker{T,N}(tnsr::StridedArray{T, N}, core_dims::NTuple{N, Int};
     iter_diag = Vector{SPNNTuckerState}()
     nstall = 0
     nredo = 0
-    conv = false
+    converged = false
 
     #verbose && info("Starting iterations...")
     pb = Progress(max_iter, "Alternating proximal gradient iterations")
     niter = 1
-    while !conv
+    while !converged
         update!(pb, niter)
 
         residn0 = resid
@@ -370,7 +370,7 @@ function spnntucker{T,N}(tnsr::StridedArray{T, N}, core_dims::NTuple{N, Int};
             verbose && (nstall >= 3) && info("Relative error below $tol $nstall times in a row")
             verbose && (cur_state.rel_residue < tol) && info("Relative error is $(cur_state.rel_residue) times below input tensor norm")
             verbose && info("spnntucker() converged in $niter iteration(s), $nredo redo steps")
-            conv = true
+            converged = true
             finish!(pb)
             break
         elseif (max_time > 0) && ((time() - start_time) > max_time)
@@ -388,7 +388,7 @@ function spnntucker{T,N}(tnsr::StridedArray{T, N}, core_dims::NTuple{N, Int};
     res = decomp0
     res.props[:niter] = niter
     res.props[:nredo] = nredo
-    res.props[:converged] = conv
+    res.props[:converged] = converged
     res.props[:rel_residue] = 2*sqrt(resid-_spnntucker_reg_penalty(decomp, lambdas))/helper.tnsr_nrm
     res.props[:iter_diag] = iter_diag
     return res

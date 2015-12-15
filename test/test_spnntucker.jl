@@ -1,4 +1,4 @@
-facts("spnntucker()") do
+facts("Sparse (semi-)nonnegative Tucker decomposition") do
 
 context("nonnegative decomposition") do
     # An example of nonnegative and semi-nonnegative Tucker decomposition

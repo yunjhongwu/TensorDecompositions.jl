@@ -5,12 +5,12 @@ using FactCheck
 include("helpers.jl")
 
 include("test_utils.jl")
-include("test-hosvd.jl")
-include("test-candecomp.jl")
-include("test-sshopm.jl")
-include("test-nncp.jl")
-include("test-tensorcur3.jl")
-include("test-parafac2.jl")
+include("test_hosvd.jl")
+include("test_candecomp.jl")
+include("test_sshopm.jl")
+include("test_nncp.jl")
+include("test_tensorcur3.jl")
+include("test_parafac2.jl")
 include("test_spnntucker.jl")
 
 #=

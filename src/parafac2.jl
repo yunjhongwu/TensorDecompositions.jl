@@ -64,7 +64,7 @@ function parafac2{S<:Matrix}(X::Vector{S},
         D = Matrix{Float64}[B[i, :] for i in 1:m]
 
         resid_old = resid
-        resid = sum(i -> sumabs2(H[i] - P[i] * A_mul_Bt(F .* D[i], A)), 1:m)
+        resid = sum(k -> sumabs2(H[k] - P[k] * A_mul_Bt(F .* D[k], A)), 1:m)
         converged = abs(resid - resid_old) < tol * resid_old
 
         niters += 1

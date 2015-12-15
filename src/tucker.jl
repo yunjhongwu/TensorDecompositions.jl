@@ -37,9 +37,9 @@ After scaling, `|decomp|=s`
 """
 function rescale!{T,N}(decomp::Tucker{T,N}, s::T)
     total_length = length(decomp.core) + sum(map(length, decomp.factors)) # total elements in the decomposition
-    for factor in decomp.factors
-        f_s = s^(length(factor)/total_length)/vecnorm(factor)
-        map!(x -> x*f_s, factor)
+    for F in decomp.factors
+        f_s = s^(length(F)/total_length)/vecnorm(F)
+        map!(x -> x*f_s, F)
     end
     core_s = s^(length(decomp.core)/total_length)/vecnorm(decomp.core)
     map!(x -> x*core_s, decomp.core)

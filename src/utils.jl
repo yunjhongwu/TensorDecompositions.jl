@@ -119,10 +119,10 @@ _check_sign(v::StridedVector) = sign(v[findmax(abs(v))[2]]) * v
 """
 Checks the validity of the core tensor dimensions.
 """
-function _check_tensor{T<:Real,N}(tensor::StridedArray{T, N}, core_dims::NTuple{N, Int})
-    N > 2 || throw(ArgumentError("This method does not support scalars, vectors, or matrices input."))
+function _check_tensor{T<:Real,N}(tnsr::StridedArray{T, N}, core_dims::NTuple{N, Int})
+    ndims(tnsr) > 2 || throw(ArgumentError("This method does not support scalars, vectors, or matrices input."))
     for i in 1:N
-      0 < core_dims[i] <= size(tensor, i) || throw(ArgumentError("core_dims[$i]=$(core_dims[i]) given, 1 <= core_dims[$i] <= size(tensor, $i) = $(size(tensor, i)) expected."))
+      0 < core_dims[i] <= size(tnsr, i) || throw(ArgumentError("core_dims[$i]=$(core_dims[i]) given, 1 <= core_dims[$i] <= size(tensor, $i) = $(size(tnsr, i)) expected."))
     end
     #isreal(T) || throw(ArgumentError("This package currently only supports real-number-valued tensors."))
     return N

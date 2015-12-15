@@ -3,31 +3,37 @@
 A Julia implementation of tensor decomposition algorithms
 
 [![Build Status](https://travis-ci.org/yunjhongwu/TensorDecompositions.jl.svg?branch=master)](https://travis-ci.org/yunjhongwu/TensorDecompositions.jl) [![Coverage Status](https://coveralls.io/repos/yunjhongwu/TensorDecompositions.jl/badge.svg?branch=master&service=github)](https://coveralls.io/github/yunjhongwu/TensorDecompositions.jl?branch=master)
-[![TensorDecompositions](http://pkg.julialang.org/badges/TensorDecompositions_0.3.svg)](http://pkg.julialang.org/?pkg=TensorDecompositions&ver=release)
+[![TensorDecompositions](http://pkg.julialang.org/badges/TensorDecompositions_0.4.svg)](http://pkg.julialang.org/?pkg=TensorDecompositions&ver=release)
 
 ------- 
 
-### New features after the previous release (v0.0.1)
+### What's new 
+  - Compatible with Julia v0.4.0
+  - Sparse (semi-)nonnegative Tucker decomposition
   - SS-HOPM for solving the symmetric rank-1 approximation
 
 ### Available functions 
 
 1. The following functions for **Tucker decompositions**, except for `sshopm`, return a `Tucker`, which contains `factors::Vector{Matrix{Float64}}`, `core::Array{Float64}` (1-dimensional array for **Kruskal decompositions**), and the relative reconstruction error `error::Float64`.
 
-  - **High-order SVD (HOSVD)** [3] `hosvd(T::StridedArray, r::Integer; compute_core::Bool=false)`; `hosvd` returns the residual only when `core=true` 
-  - **Canonical polyadic decomposition (CANDECOMP/PARAFAC)** `candecomp(T::StridedArray, r::Integer, algo::String="als"; tol::Float64=1e-5, maxiter::Integer=100, hosvd_init::Bool=false, compute_res::Bool=true, verbose=true)`; this function provides two algorithms, set by `algo` argument, for fitting the CANDECOMP model:
-    - *als* (default): Alternating least square method [3] 
-    - *sgsd*: Simultaneous generalized Schur decomposition [1]
-  - **Non-negative CANDECOMP/PARAFAC** by the block-coordinate update method [6] `nncp(T::StridedArray, r::Integer; tol::Float64=1e-5, maxiter::Integer=100, compute_res::Bool=true, verbose::Bool=true)`
+  - **High-order SVD (HOSVD)** [3] `hosvd{T,N}(tensor::StridedArray{T,N}, core_dims::NTuple{N, Int}; pad_zeros::Bool=false, compute_error::Bool=false)` 
+
+  - **Canonical polyadic decomposition (CANDECOMP/PARAFAC)** `candecomp{T,N}(tnsr::StridedArray{T,N}, r::Integer; method::Symbol=:ALS, tol::Float64=1e-5, maxiter::Integer=100, hosvd_init::Bool=false, compute_error::Bool=false, verbose::Bool=true)`. This function provides two algorithms, set by `method` argument, for fitting the CANDECOMP model:
+    - *ALS* (default): Alternating least square method [3] 
+    - *SGSD*: Simultaneous generalized Schur decomposition [1]
+
+  - **Non-negative CANDECOMP/PARAFAC** by the block-coordinate update method [7] `nncp(tnsr::StridedArray, r::Integer; tol::Float64=1e-4, maxiter::Integer=100, compute_error::Bool=false, verbose::Bool=true)`
 
   > Remark. Choose a smaller `r` if the above functions throw `ERROR: SingularException`.
 
-  - **Symmetric rank-1 approximation for symmetric tensors** by shifted symmetric higher-order power method (SS-HOPM) [4] `sshopm(T::Union(StridedArray, (Matrix{Int64}, StridedVector)), alpha::Real; tol::Float64=1e-5, maxiter::Integer=100, verbose::Bool=true)`. This function requires a shifting parameter `alpha` and returns an eigenpair of *T*, represented by a tuple `(Float64, Vector{Float64})`. Note that this functions does NOT check symmetry of input tensors. This implementation takes both dense representation `StridedArray` and sparse representation `(Matrix{Int64}, StridedVector, Integer)`, which contains indexes, as column vectors of the matrix in the first component of the tuple, corresponding values, and dimension of a mode.
+  - **Symmetric rank-1 approximation for symmetric tensors** by shifted symmetric higher-order power method (SS-HOPM) [4] `sshopm{T,N}(tnsr::AbstractArray{T,N}, alpha::Real; tol::Float64=1e-5, maxiter::Int=100, verbose::Bool=false)`. This function requires a shifting parameter `alpha` and returns an eigenpair of *tnsr*, represented by a tuple `(Float64, Vector{Float64})`. Note that this functions does NOT check symmetry of input tensors. This implementation takes both dense representation `StridedArray` and sparse representation `(Matrix{Int64}, StridedVector, Integer)`, which contains indexes, as column vectors of the matrix in the first component of the tuple, corresponding values, and dimension of a mode.
 
+  - **Sparse (semi-)nonnegative Tucker decomposition** by the alternating proximal gradient method [6] `spnntucker{T,N}(tnsr::StridedArray{T, N}, core_dims::NTuple{N, Int}; core_nonneg::Bool=true, tol::Float64=1e-4, hosvd_init::Bool=false, max_iter::Int=500, max_time::Float64=0.0, lambdas::Vector{Float64} = fill(0.0, N+1), Lmin::Float64 = 1.0, rw::Float64=0.9999, bounds::Vector{Float64} = fill(Inf, N+1), ini_decomp = nothing, verbose::Bool=false)`. 
+  
 
 2. **Tensor-CUR** for 3-mode tensors [5] is a randomized algorithm and returns a `CUR`, which includes indexes of *c* slabs (along axis *slab_index*) and *r* fibers, matrix *U*, and the relative reconstruction error of slabs. Note that this function samples with replacement, and the numbers of repeated samples are stored in `Cweight` and `Rweight`.
 
-  - `tensorcur3(T::StridedArray, c::Integer, r::Integer, slab_index::Integer=3; compute_u::Bool=true)`
+  - `tensorcur3(tnsr::StridedArray, c::Integer, r::Integer, slab_axis::Integer=3; compute_u::Bool=true)`
 
 3. **PARAFAC2** for 3-mode tensors by the alternating least square method [2] takes an array of matrices, which may not be equally sized, and factorizes the matrices under a constraint on row space. The below function returns a `PARAFAC2`, which contains factors and diagonal effects *D* of each matrix, a common loading matrix *A*, and the relative error.
 
@@ -35,7 +41,7 @@ A Julia implementation of tensor decomposition algorithms
 
 
 + Common parameters:
-  - `T::StridedArray`: Data tensor
+  - `tnsr::StridedArray`: Data tensor
   - `r::Integer`: Number of components/factors
   - `tol::Float64`: Tolerance to achieve 
   - `maxiter::Integer`: Maximum number of iterations
@@ -90,10 +96,11 @@ julia> F.core
 ```
 
 ### Requirements
-  - Julia 0.3
+  - Julia 0.4
   - TensorOperations
   - Distributions
-  - Compat
+  - ProgressMeter
+  - FactCheck
 
 ### Performance issues
   - Inefficiency of unfolding (matricizing), which has a significant impact on the performance of `candecomp` (`algo="als"`) and `parafac2`
@@ -105,14 +112,16 @@ julia> F.core
   - Tensor completion algorithms
 
 ### Reference
- - [1] De Lathauwer, L., De Moor, B., & Vandewalle, J. (2004). Computation of the canonical decomposition by means of a simultaneous generalized Schur decomposition. SIAM Journal on Matrix Analysis and Applications, 26(2), 295-327.
+ - [1] De Lathauwer, L., De Moor, B., & Vandewalle, J. (2004). Computation of the canonical decomposition by means of a simultaneous generalized Schur decomposition. *SIAM Journal on Matrix Analysis and Applications*, 26(2), 295-327.
 
- - [2] Kiers, H. A., Ten Berge, J. M., & Bro, R. (1999). PARAFAC2-Part I. A direct fitting algorithm for the PARAFAC2 model. Journal of Chemometrics, 13(3-4), 275-294.
+ - [2] Kiers, H. A., Ten Berge, J. M., & Bro, R. (1999). PARAFAC2-Part I. A direct fitting algorithm for the PARAFAC2 model. *Journal of Chemometrics*, 13(3-4), 275-294.
 
- - [3] Kolda, T. G., & Bader, B. W. (2009). Tensor decompositions and applications. SIAM review, 51(3), 455-500.
+ - [3] Kolda, T. G., & Bader, B. W. (2009). Tensor decompositions and applications. *SIAM Review*, 51(3), 455-500.
 
- - [4] Kolda, T. G., & Mayo, J. R. (2011). Shifted power method for computing tensor eigenpairs. SIAM Journal on Matrix Analysis and Applications, 32(4), 1095-1124.
+ - [4] Kolda, T. G., & Mayo, J. R. (2011). Shifted power method for computing tensor eigenpairs. *SIAM Journal on Matrix Analysis and Applications*, 32(4), 1095-1124.
 
- - [5] Mahoney, M. W., Maggioni, M., & Drineas, P. (2008). Tensor-CUR decompositions for tensor-based data. SIAM Journal on Matrix Analysis and Applications, 30(3), 957-987.
+ - [5] Mahoney, M. W., Maggioni, M., & Drineas, P. (2008). Tensor-CUR decompositions for tensor-based data. *SIAM Journal on Matrix Analysis and Applications*, 30(3), 957-987.
 
- - [6] Xu, Y., & Yin, W. (2013). A block coordinate descent method for regularized multiconvex optimization with applications to nonnegative tensor factorization and completion. SIAM Journal on imaging sciences, 6(3), 1758-1789.
+ - [6] Xu, Y. (2013). Alternating proximal gradient method for sparse nonnegative Tucker decomposition. *Mathematical Programming Computation*, 7(1), 39-70.
+
+ - [7] Xu, Y., & Yin, W. (2013). A block coordinate descent method for regularized multiconvex optimization with applications to nonnegative tensor factorization and completion. *SIAM Journal on Imaging Sciences*, 6(3), 1758-1789.

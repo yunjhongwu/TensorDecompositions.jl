@@ -110,7 +110,7 @@ function _candecomp{T,N}(
         VB = 0
         @inbounds for i in 1:N
             idx = [N:-1:i + 1; i - 1:-1:1]
-            VB = prod(i -> tnsr_size[i], idx)
+            VB = prod(k -> tnsr_size[k], idx)
             V[1:VB, :] = reduce(khatrirao, factors[idx])
             factors[i] = _row_unfold(tnsr, i) * V[1:VB, :] / reduce(.*, gram[idx])
             sum!(lbds, abs(factors[i]))
@@ -132,15 +132,15 @@ end
 Computes CANDECOMP by SGSD (Simultaneous Generalized Schur Decomposition) method.
 """
 function _candecomp{T,N}(
-  method::Type{Val{:SGSD}},
-  tnsr::StridedArray{T,N},
-  r::Int,
-  factors::Vector{Matrix{Float64}},
-  tol::Float64,
-  maxiter::Integer,
-  verbose::Bool)
+    method::Type{Val{:SGSD}},
+    tnsr::StridedArray{T,N},
+    r::Int,
+    factors::Vector{Matrix{Float64}},
+    tol::Float64,
+    maxiter::Integer,
+    verbose::Bool)
 
-    N==3 || throw(ArgumentError("This algorithm only applies to 3-mode tensors."))
+    ndims(tnsr) == 3 || throw(ArgumentError("This algorithm only applies to 3-mode tensors."))
     (n1, n2, n3) = size(tnsr)
     IB = [min(n1 - 1, r), (n2 == r) ? 2 : 1]
     Q = qr(factors[1], thin=false)[1]
