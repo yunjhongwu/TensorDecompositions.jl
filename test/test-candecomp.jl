@@ -1,22 +1,26 @@
-println("CANDECOMP")
+facts("CANDECOMP") do
 r = 2
-T = _kruskal3_generator(r, (10, 20, 30), 1, false)
+T = rand_kruskal3(r, (10, 20, 30), false)
 
-println(" - Case 1: Alternating least square")
-@time factors = candecomp(T, r, algo="als")
-@test length(factors.factors) == ndims(T)
-for i in 1:ndims(T)
-    @test size(factors.factors[i]) == (size(T, i), r)
+context("Incorrect method") do
+  @fact_throws candecomp(T, r, compute_error=true, method=:ALdS) ArgumentError
 end
-@test length(factors.core) == r
-@test factors.error < 1e-5
 
-println(" - Case 2: Simultaneous generalized Schur decomposition")
-@time factors = candecomp(T, r, algo="sgsd")
-@test length(factors.factors) == ndims(T)
-for i in 1:ndims(T)
-    @test size(factors.factors[i]) == (size(T, i), r)
+context("ALS (Alternating least squares)") do
+    @time factors = candecomp(T, r, compute_error=true, method=:ALS)
+    @fact length(factors.factors) --> ndims(T)
+    @fact map(size, factors.factors) --> (collect(zip(size(T), (r, r, r)))...)
+    @fact rank(factors) --> r
+    @fact rel_residue(factors) --> less_than(1e-5)
 end
-@test length(factors.core) == r
-@test factors.error < 1e-5
 
+context("SGSD (Simultaneous generalized Schur decomposition)") do
+    @time factors = candecomp(T, r, compute_error=true, method=:SGSD)
+    @fact length(factors.factors) --> ndims(T)
+    @fact map(size, factors.factors) --> (collect(zip(size(T), (r, r, r)))...)
+    @fact rank(factors) --> r
+    @fact length(factors.lambdas) --> r
+    @fact rel_residue(factors) --> less_than(1e-5)
+end
+
+end
