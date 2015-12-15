@@ -7,7 +7,7 @@ A Julia implementation of tensor decomposition algorithms
 
 ------- 
 
-### What's new 
+### What's new (0.0.1 => 0.1.0)
   - Compatible with Julia v0.4.0
   - Sparse (semi-)nonnegative Tucker decomposition
   - SS-HOPM for solving the symmetric rank-1 approximation
@@ -16,7 +16,7 @@ A Julia implementation of tensor decomposition algorithms
 
 1. The following functions for **Tucker decompositions**, except for `sshopm`, return a `Tucker`, which contains `factors::Vector{Matrix{Float64}}`, `core::Array{Float64}` (1-dimensional array for **Kruskal decompositions**), and the relative reconstruction error `error::Float64`.
 
-  - **High-order SVD (HOSVD)** [3] `hosvd{T,N}(tensor::StridedArray{T,N}, core_dims::NTuple{N, Int}; pad_zeros::Bool=false, compute_error::Bool=false)` 
+  - **High-order SVD (HOSVD)** [3] `hosvd{T,N}(tnsr::StridedArray{T,N}, core_dims::NTuple{N, Int}; pad_zeros::Bool=false, compute_error::Bool=false)` 
 
   - **Canonical polyadic decomposition (CANDECOMP/PARAFAC)** `candecomp{T,N}(tnsr::StridedArray{T,N}, r::Integer; method::Symbol=:ALS, tol::Float64=1e-5, maxiter::Integer=100, hosvd_init::Bool=false, compute_error::Bool=false, verbose::Bool=true)`. This function provides two algorithms, set by `method` argument, for fitting the CANDECOMP model:
     - *ALS* (default): Alternating least square method [3] 
@@ -60,11 +60,10 @@ julia> T = cat(3, map(x -> x * u * v', w)...) + 0.2 * randn(10, 20, 30)
 julia> size(T)
 (10, 20, 30)
 
-julia> F = candecomp(T, 1);
-Algorithm converged after 12 iterations.
-
-julia> F.error
-0.2592828563029894
+julia> F = candecomp(T, 1, compute_error=true, method=:ALS);
+NFO: Initializing factor matrices...
+INFO: Applying CANDECOMP ALS method...
+INFO: Algorithm converged after 4 iterations.
 
 julia> [size(F.factors[i]) for i = 1:3]
 3-element Array{Any,1}:
@@ -72,26 +71,22 @@ julia> [size(F.factors[i]) for i = 1:3]
  (20,1)
  (30,1)
 
-julia> F.core
-1x1 Array{Float64,2}:
- 2211.18
+julia> F.props
+Dict{Symbol,Any} with 1 entry:
+  :rel_residue => 0.18735979193091348
 
-julia> @time F = candecomp(T, 2);
-Algorithm converged after 23 iterations.
-elapsed time: 0.01915539 seconds (8185080 bytes allocated)
-
-julia> F.error
-0.25597543363699055
-
-julia> [size(F.factors[i]) for i = 1:3]
-3-element Array{Any,1}:
- (10,2)
- (20,2)
- (30,2)
-
-julia> F.core
-1x2 Array{Float64,2}:
- 93.409  2211.13
+julia> F.factors[1]
+10x1 Array{Float64,2}:
+  0.0676683 
+ -0.0985366 
+ -0.239748  
+  0.0821674 
+ -0.0547672 
+ -0.00892641
+  0.0220593 
+ -0.058075  
+ -0.135493  
+  0.23256 
 
 ```
 
@@ -103,12 +98,13 @@ julia> F.core
   - FactCheck
 
 ### Performance issues
-  - Inefficiency of unfolding (matricizing), which has a significant impact on the performance of `candecomp` (`algo="als"`) and `parafac2`
+  - Inefficiency of unfolding (matricizing), which has a significant impact on the performance of `candecomp` (`method:=ALS`) and `parafac2`
 
 ### Future plan
   - Improving performance 
   - More algorithms for fitting CANDECOMP/PARAFAC and non-negative tensor decompositions
   - Probabilistic tensor decompositions
+  - Algorithms for factorizing sparse tensors
   - Tensor completion algorithms
 
 ### Reference
