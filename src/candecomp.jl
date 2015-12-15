@@ -147,7 +147,11 @@ function _candecomp{T,N}(
     Z = qr(flipdim(factors[2], 2), thin=false)[1]
     q = Array(Float64, n1, n1)
     z = Array(Float64, n2, n2)
-    R = tensorcontract(tensorcontract(tnsr, [1, 2, 3], Q, [1, 4], [4, 2, 3]), [1, 2, 3], Z, [2, 4], [1, 4, 3])
+
+    R = zeros(size(tnsr))
+    @tensor begin 
+        R[4,5,3] = tnsr[1,2,3] * Q[1,4] * Z[2,5]
+    end
 
     res = vecnorm(tnsr)
     converged = false
@@ -159,13 +163,20 @@ function _candecomp{T,N}(
         for i in 1:IB[1]
             q[:, i:n1] *= svd(q[:, i:n1]' * slice(R, :, n2 - r + i, :))[1]
         end
-        R = tensorcontract(R, [1, 2, 3], q, [1, 4], [4, 2, 3])
+
+        @tensor begin
+            R[4,2,3] = R[1,2,3] * q[1,4]
+        end
+        
         for i in r:-1:IB[2]
             z[:, 1:n2 - r + i] *= flipdim(svd(slice(R, i, :, :)' * z[:, 1:n2 - r + i])[3], 2)
         end
         Q *= q
         Z *= z
-        R = tensorcontract(tensorcontract(tnsr, [1, 2, 3], Q, [1, 4], [4, 2, 3]), [1, 2, 3], Z, [2, 4], [1, 4, 3])
+
+        @tensor begin
+            R[4,5,3] = tnsr[1,2,3] * Q[1,4] * Z[2,5]
+        end
 
         res_old = res
         res = vecnorm(tril(squeeze(sum(R .^ 2, 3), 3), n2 - r - 1))
