@@ -52,22 +52,19 @@ Returns:
   `CANDECOMP` object
 """
 function candecomp{T,N}(tnsr::StridedArray{T,N},
-                   r::Integer;
+                   r::Integer,
+                   initial_guess::NTuple{N, Matrix{T}};
                    method::Symbol=:ALS,
                    tol::Float64=1e-5,
                    maxiter::Integer=100,
-                   hosvd_init::Bool=false,
                    compute_error::Bool=false,
                    verbose::Bool=true)
 
     _check_tensor(tnsr, r)
-    # don't use HO-SVD init if later the call would fail because of the wrong method
-    verbose && info("Initializing factor matrices...")
-    factors = in(method, CANDECOMP_methods) && hosvd_init ?
-              hosvd(tnsr, r, compute_error=false).factors :
-              _random_factors(size(tnsr), r)
-
-    verbose && info("Applying CANDECOMP $method method...")
+    verbose && info("initializing factor matrices...")
+    all([(size(tnsr, i), r) == size(initial_guess[i]) for i in 1:N]) || throw(ArgumentError("dimension of initial guess does not match input tensor.")) 
+    factors = collect(Matrix{T}, initial_guess)
+    verbose && info("applying candecomp $method method...")
     res = _candecomp(Val{method}, tnsr, r, factors, tol, maxiter, verbose)
     if compute_error
       _set_rel_residue(res, tnsr)
@@ -149,9 +146,7 @@ function _candecomp{T,N}(
     z = Array(Float64, n2, n2)
 
     R = zeros(size(tnsr))
-    @tensor begin 
-        R[4,5,3] = tnsr[1,2,3] * Q[1,4] * Z[2,5]
-    end
+    @tensor R[4,5,3] = tnsr[1,2,3] * Q[1,4] * Z[2,5]
 
     res = vecnorm(tnsr)
     converged = false
@@ -164,9 +159,7 @@ function _candecomp{T,N}(
             q[:, i:n1] *= svd(q[:, i:n1]' * slice(R, :, n2 - r + i, :))[1]
         end
 
-        @tensor begin
-            R[4,2,3] = R[1,2,3] * q[1,4]
-        end
+        @tensor R[4,2,3] = R[1,2,3] * q[1,4]
         
         for i in r:-1:IB[2]
             z[:, 1:n2 - r + i] *= flipdim(svd(slice(R, i, :, :)' * z[:, 1:n2 - r + i])[3], 2)
@@ -174,9 +167,7 @@ function _candecomp{T,N}(
         Q *= q
         Z *= z
 
-        @tensor begin
-            R[4,5,3] = tnsr[1,2,3] * Q[1,4] * Z[2,5]
-        end
+        @tensor R[4,5,3] = tnsr[1,2,3] * Q[1,4] * Z[2,5]
 
         res_old = res
         res = vecnorm(tril(squeeze(sum(R .^ 2, 3), 3), n2 - r - 1))

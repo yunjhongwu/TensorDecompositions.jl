@@ -18,7 +18,7 @@ A Julia implementation of tensor decomposition algorithms
 
   - **High-order SVD (HOSVD)** [3] `hosvd{T,N}(tnsr::StridedArray{T,N}, core_dims::NTuple{N, Int}; pad_zeros::Bool=false, compute_error::Bool=false)` 
 
-  - **Canonical polyadic decomposition (CANDECOMP/PARAFAC)** `candecomp{T,N}(tnsr::StridedArray{T,N}, r::Integer; method::Symbol=:ALS, tol::Float64=1e-5, maxiter::Integer=100, hosvd_init::Bool=false, compute_error::Bool=false, verbose::Bool=true)`. This function provides two algorithms, set by `method` argument, for fitting the CANDECOMP model:
+  - **Canonical polyadic decomposition (CANDECOMP/PARAFAC)** `candecomp{T,N}(tnsr::StridedArray{T,N}, r::Integer, initial_guess::NTuple{N, Matrix{T}}; method::Symbol=:ALS, tol::Float64=1e-5, maxiter::Integer=100, compute_error::Bool=false, verbose::Bool=true)`. This function provides two algorithms, set by `method` argument, for fitting the CANDECOMP model:
     - *ALS* (default): Alternating least square method [3] 
     - *SGSD*: Simultaneous generalized Schur decomposition [1]
 
@@ -60,7 +60,7 @@ julia> T = cat(3, map(x -> x * u * v', w)...) + 0.2 * randn(10, 20, 30)
 julia> size(T)
 (10, 20, 30)
 
-julia> F = candecomp(T, 1, compute_error=true, method=:ALS);
+julia> F = candecomp(T, 1, (randn(10, 1), randn(20, 1), randn(30, 1)), compute_error=true, method=:ALS);
 NFO: Initializing factor matrices...
 INFO: Applying CANDECOMP ALS method...
 INFO: Algorithm converged after 4 iterations.
