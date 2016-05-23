@@ -27,9 +27,11 @@ Releases an array returned by `acquire!()` back into the pool.
 """
 function release!(pool::ArrayPool{T}, arr::Array{T}) where T
     len = length(arr)
-    len_pool = haskey(pool.length_pools, len) ?
-               pool.length_pools[len] :
-               get!(pool.length_pools, len, Vector{Vector{T}}())
-    push!(len_pool, reshape(arr, (len,)))
+    len_pool = get(pool.length_pools, len, nothing)
+    if len_pool !== nothing
+        push!(len_pool, vec(arr))
+    else
+        throw(DimensionMismatch("No $len-element arrays were acquired before"))
+    end
     return pool
 end
