@@ -29,6 +29,8 @@ function release!(pool::ArrayPool{T}, arr::Array{T}) where T
     len = length(arr)
     len_pool = get(pool.length_pools, len, nothing)
     if len_pool !== nothing
+        #@info "release($(size(arr))) ($(length(len_pool)))"
+        (length(len_pool) <= 100) || error("Overflow of $len-sized vectors pool")
         push!(len_pool, vec(arr))
     else
         throw(DimensionMismatch("No $len-element arrays were acquired before"))
