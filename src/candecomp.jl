@@ -62,7 +62,7 @@ function candecomp{T,N}(tnsr::StridedArray{T,N},
 
     _check_tensor(tnsr, r)
     verbose && info("initializing factor matrices...")
-    all([(size(tnsr, i), r) == size(initial_guess[i]) for i in 1:N]) || throw(ArgumentError("dimension of initial guess does not match input tensor.")) 
+    all([(size(tnsr, i), r) == size(initial_guess[i]) for i in 1:N]) || throw(ArgumentError("dimension of initial guess does not match input tensor."))
     factors = collect(Matrix{T}, initial_guess)
     verbose && info("applying candecomp $method method...")
     res = _candecomp(Val{method}, tnsr, r, factors, tol, maxiter, verbose)
@@ -160,7 +160,7 @@ function _candecomp{T,N}(
         end
 
         @tensor R[4,2,3] = R[1,2,3] * q[1,4]
-        
+
         for i in r:-1:IB[2]
             z[:, 1:n2 - r + i] *= flipdim(svd(slice(R, i, :, :)' * z[:, 1:n2 - r + i])[3], 2)
         end
@@ -202,4 +202,4 @@ end
 Codes of implemented CANDECOMP methods.
 """
 const CANDECOMP_methods = Symbol[t.parameters[1] for t in filter(t -> isa(t, DataType),
-                                                                 [m.sig.parameters[1].parameters[1] for m in methods(_candecomp)])] |> Set{Symbol}
+                                                                 [m.sig.parameters[2].parameters[1] for m in methods(_candecomp)])] |> Set{Symbol}
