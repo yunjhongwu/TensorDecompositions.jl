@@ -30,9 +30,9 @@ immutable SPNNTuckerHelper{T<:Number, N}
     L0::Vector{Float64}
     arr_pool::ArrayPool{T}
 
-    function Base.call{T,N}(::Type{SPNNTuckerHelper}, tnsr::Array{T,N}, core_dims::NTuple{N,Int},
-                            lambdas::Vector{Float64}, bounds::Vector{T}, Lmin::Float64;
-                            verbose::Bool=false)
+    function (::Type{SPNNTuckerHelper}){T, N}(tnsr::Array{T,N}, core_dims::NTuple{N,Int},
+                                              lambdas::Vector{Float64}, bounds::Vector{T}, 
+                                              Lmin::Float64; verbose::Bool=false)
         verbose && info("Precomputing input tensor unfoldings...")
         tnsr_dims = size(tnsr)
         new{T,N}(tnsr, vecnorm(tnsr), core_dims,

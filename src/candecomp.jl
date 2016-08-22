@@ -9,8 +9,8 @@ immutable CANDECOMP{T<:Number, N} <: TensorDecomposition{T, N}
   CANDECOMP(factors::NTuple{N, Matrix{T}}, lambdas::Vector{T}) =
     new(factors, lambdas, Dict{Symbol, Any}())
 
-  Base.call{T,N}(::Type{CANDECOMP}, factors::NTuple{N, Matrix{T}}, lambdas::Vector{T}) =
-    CANDECOMP{T,N}(factors, lambdas)
+  (::Type{CANDECOMP}){T, N}(factors::NTuple{N, Matrix{T}}, lambdas::Vector{T}) =
+    CANDECOMP{T, N}(factors, lambdas)
 end
 
 """

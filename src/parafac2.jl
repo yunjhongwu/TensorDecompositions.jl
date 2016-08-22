@@ -7,7 +7,7 @@ immutable PARAFAC2{T<:Number, N} <: TensorDecomposition{T, N}
     A::Matrix{T}
     props::Dict{Symbol, Any}
 
-    function Base.call{T}(::Type{PARAFAC2},
+    function (::Type{PARAFAC2}){T}(
                    X::Vector{Matrix{T}},
                    F::Matrix{Float64},
                    D::Vector{Matrix{Float64}},

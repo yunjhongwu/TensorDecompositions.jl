@@ -7,11 +7,6 @@ A Julia implementation of tensor decomposition algorithms
 
 ------- 
 
-### What's new (0.0.1 => 0.1.0)
-  - Compatible with Julia v0.4.0
-  - Sparse (semi-)nonnegative Tucker decomposition
-  - SS-HOPM for solving the symmetric rank-1 approximation
-
 ### Available functions 
 
 1. The following functions for **Tucker decompositions**, except for `sshopm`, return a `Tucker`, which contains `factors::Vector{Matrix{Float64}}`, `core::Array{Float64}` (1-dimensional array for **Kruskal decompositions**), and the relative reconstruction error `error::Float64`.

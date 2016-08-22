@@ -9,8 +9,8 @@ immutable Tucker{T<:Number, N} <: TensorDecomposition{T, N}
     Tucker(factors::NTuple{N, Matrix{T}}, core::StridedArray{T, N}) =
         new(factors, core, Dict{Symbol, Any}())
 
-    Base.call{T,N}(::Type{Tucker}, factors::NTuple{N, Matrix{T}}, core::StridedArray{T, N}) =
-        Tucker{T,N}(factors, core)
+    (::Type{Tucker}){T, N}(factors::NTuple{N, Matrix{T}}, core::StridedArray{T, N}) =
+        Tucker{T, N}(factors, core)
 end
 
 """
