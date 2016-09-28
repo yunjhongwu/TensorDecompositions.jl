@@ -61,7 +61,7 @@ function parafac2{S<:Matrix}(X::Vector{S},
         B = _row_unfold(T, 3) * khatrirao(A, F) / (G[2] .* G[1])
         At_mul_B!(G[3], B, B)
 
-        D = Matrix{Float64}[B[i, :] for i in 1:m]
+        D = Matrix{Float64}[B[i, :]' for i in 1:m]
 
         resid_old = resid
         resid = sum(k -> sumabs2(H[k] - P[k] * A_mul_Bt(F .* D[k], A)), 1:m)

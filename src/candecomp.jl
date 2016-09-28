@@ -179,9 +179,13 @@ function _candecomp{T,N}(
 
     R = R[1:r, n2-r+1:n2, :]
     M = cat(3, eye(r, r), eye(r, r))
-    @inbounds for i in r - 1:-1:1, j = i + 1:r
-        d = i + 1:j - 1
-        M[i, j, :] = hcat(R[j, j, :][:], R[i, i, :][:]) \ (R[i, j, :][:] - mapslices(R3 -> sum(M[i, d, 1] * (diag(R3)[d] .* M[d, j, 2])), R, [1, 2])[:])
+    @inbounds for i in (r - 1):-1:1, j = (i + 1):r
+        if i + 1 < j
+            d = (i + 1):(j - 1)
+            println(d)
+    
+            M[i, j, :] = hcat(r[j, j, :][:], r[i, i, :][:]) \ (r[i, j, :][:] - mapslices(R3 -> sum(M[i, d, 1] * (diag(R3)[d] .* M[d, j, 2])), R, [1, 2])[:])
+        end
     end
 
     factors[1] = Q[:, 1:r] * M[:, :, 1]

@@ -12,7 +12,7 @@ context("nonnegative decomposition") do
     tnsr = add_noise(tnsr_orig, 0.6, true)
 
     # Solve the problem
-    @time tucker_spnn = spnntucker(tnsr, size(tucker_orig.core), tol=1E-4, ini_decomp=:hosvd,
+    @time tucker_spnn = spnntucker(tnsr, size(tucker_orig.core), tol=1E-5, ini_decomp=:hosvd,
                              core_nonneg=true,
                              max_iter=1000, verbose=true, lambdas=fill(0.1, 4))
 
@@ -32,7 +32,7 @@ context("semi-nonnegative decomposition") do
     tnsr = add_noise(tnsr_orig, 0.6, false)
 
     # Solve the problem
-    @time tucker_spnn = spnntucker(tnsr, size(tucker_orig.core), tol=1E-4, ini_decomp=:hosvd,
+    @time tucker_spnn = spnntucker(tnsr, size(tucker_orig.core), tol=1E-5, ini_decomp=:hosvd,
                              core_nonneg=false,
                              max_iter=1000, verbose=true, lambdas=fill(0.1, 4))
 
