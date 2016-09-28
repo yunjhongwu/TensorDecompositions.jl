@@ -1,9 +1,10 @@
 language: julia
 os:
-    - osx
     - linux
+    - osx
+    - windows
 julia:
-    - release
+    - 0.5
 notifications:
     email: false
 script:

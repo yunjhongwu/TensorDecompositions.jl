@@ -3,7 +3,7 @@
 A Julia implementation of tensor decomposition algorithms
 
 [![Build Status](https://travis-ci.org/yunjhongwu/TensorDecompositions.jl.svg?branch=master)](https://travis-ci.org/yunjhongwu/TensorDecompositions.jl) [![Coverage Status](https://coveralls.io/repos/yunjhongwu/TensorDecompositions.jl/badge.svg?branch=master&service=github)](https://coveralls.io/github/yunjhongwu/TensorDecompositions.jl?branch=master)
-[![TensorDecompositions](http://pkg.julialang.org/badges/TensorDecompositions_0.4.svg)](http://pkg.julialang.org/?pkg=TensorDecompositions&ver=release)
+[![TensorDecompositions](http://pkg.julialang.org/badges/TensorDecompositions_0.5.svg)](http://pkg.julialang.org/?pkg=TensorDecompositions&ver=release)
 
 ------- 
 
@@ -86,7 +86,7 @@ julia> F.factors[1]
 ```
 
 ### Requirements
-  - Julia 0.4
+  - Julia 0.5
   - TensorOperations
   - Distributions
   - ProgressMeter
