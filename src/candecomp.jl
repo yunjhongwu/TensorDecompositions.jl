@@ -156,13 +156,13 @@ function _candecomp{T,N}(
         z = eye(n2)
 
         for i in 1:IB[1]
-            q[:, i:n1] *= svd(q[:, i:n1]' * slice(R, :, n2 - r + i, :))[1]
+            q[:, i:n1] *= svd(q[:, i:n1]' * view(R, :, n2 - r + i, :))[1]
         end
 
         @tensor R[4,2,3] = R[1,2,3] * q[1,4]
 
         for i in r:-1:IB[2]
-            z[:, 1:n2 - r + i] *= flipdim(svd(slice(R, i, :, :)' * z[:, 1:n2 - r + i])[3], 2)
+            z[:, 1:n2 - r + i] *= flipdim(svd(view(R, i, :, :)' * z[:, 1:n2 - r + i])[3], 2)
         end
         Q *= q
         Z *= z

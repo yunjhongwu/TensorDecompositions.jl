@@ -53,8 +53,8 @@ function tensorcur3(tnsr::StridedArray,
 
     Cindex = rand(Categorical(p), c)
     Rindex = rand(Categorical(q), r)
-    Cweight = hist(Cindex, 0:size(tnsr, slab_axis))[2]
-    Rweight = hist(Rindex, 0:prod(fiber_size))[2]
+    Cweight = fit(Histogram, Cindex, 0:size(tnsr, slab_axis)).weights
+    Rweight = fit(Histogram, Rindex, 0:prod(fiber_size)).weights
     Cindex = sort(unique(Cindex))
     Rindex = sort(unique(Rindex))
     Cweight = Cweight[Cindex]

@@ -1,4 +1,3 @@
-__precompile__(true)
 
 # require("TensorOperations")
 
@@ -7,12 +6,13 @@ module TensorDecompositions
     using Distributions
     using ProgressMeter
     using Base.Cartesian
+    using StatsBase
 
     export
 
     # types
     SparseArray,
-    TensorDecomposition, PARAFAC2, CANDECOMP, CUR, Tucker,
+    TensorDecompositions, PARAFAC2, CANDECOMP, CUR, Tucker,
 
     # TensorDecomposition methods
     rel_residue,
