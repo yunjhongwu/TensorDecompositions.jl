@@ -1,4 +1,4 @@
-
+__precompile__()
 # require("TensorOperations")
 
 module TensorDecompositions
