@@ -1,4 +1,4 @@
-__precompile__()
+__precompile__(false)
 # require("TensorOperations")
 
 module TensorDecompositions
@@ -17,7 +17,7 @@ module TensorDecompositions
     # TensorDecomposition methods
     rel_residue,
     compose, compose!,
- 
+
     # additional tensor algebra methods
     tensorcontractmatrix, tensorcontractmatrices!, tensorcontractmatrices,
 
