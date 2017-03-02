@@ -16,7 +16,7 @@ function acquire!(pool::ArrayPool{T}, size) where T
     len = prod(size)
     len_pool = haskey(pool.length_pools, len) ?
                pool.length_pools[len] :
-               get!(pool.length_pools, len, Vector{Vector{T}}())
+               get!(() -> Vector{Vector{T}}(), pool.length_pools, len)
     return isempty(len_pool) ?
             Array{T}(undef, size) :
             reshape(pop!(len_pool), size)
