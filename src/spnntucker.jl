@@ -223,7 +223,7 @@ The function uses the alternating proximal gradient method to solve the followin
 
 The implementation is based on ntds_fapg() MATLAB code by Yangyang Xu and Wotao Yin.
 
-See Y. Xu, "Alternating proximal gradient method for sparse nonnegative Tucker decomposition", Math. Prog. Comp., 7, 39-70, 2013.
+See Y. Xu, "Alternating proximal gradient method for sparse nonnegative Tucker decomposition", Math. Prog. Comp., 7, 39-70, 2015.
 See http://www.caam.rice.edu/~optimization/bcu/`
 """
 function spnntucker{T,N}(tnsr::StridedArray{T, N}, core_dims::NTuple{N, Int};
