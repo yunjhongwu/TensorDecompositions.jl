@@ -6,7 +6,7 @@ immutable CANDECOMP{T<:Number, N} <: TensorDecomposition{T, N}
   lambdas::Vector{T}
   props::Dict{Symbol, Any}      # extra properties
 
-  CANDECOMP(factors::NTuple{N, Matrix{T}}, lambdas::Vector{T}) =
+  CANDECOMP{T, N}(factors::NTuple{N, Matrix{T}}, lambdas::Vector{T}) where {T<:Number, N} =
     new(factors, lambdas, Dict{Symbol, Any}())
 
   (::Type{CANDECOMP}){T, N}(factors::NTuple{N, Matrix{T}}, lambdas::Vector{T}) =
@@ -109,14 +109,14 @@ function _candecomp{T,N}(
             idx = [N:-1:i + 1; i - 1:-1:1]
             VB = prod(k -> tnsr_size[k], idx)
             V[1:VB, :] = reduce(khatrirao, factors[idx])
-            factors[i] = _row_unfold(tnsr, i) * V[1:VB, :] / reduce(.*, gram[idx])
-            sum!(lbds, abs(factors[i]))
+            factors[i] = _row_unfold(tnsr, i) * V[1:VB, :] / reduce(((x, y) -> broadcast(*, x, y)), gram[idx])
+            sum!(lbds, abs.(factors[i]))
             factors[i] ./= lbds
             At_mul_B!(gram[i], factors[i], factors[i])
         end
         resid_old = resid
-        resid = vecnorm(V[1:VB, :] * (factors[N] .* lbds)' - tnsr_flat)
-        converged = abs(resid - resid_old) < tol * resid_old
+        resid = vecnorm(V[1:VB, :] * broadcast(*, factors[N], lbds)' - tnsr_flat)
+        converged = abs.(resid - resid_old) < tol * resid_old
         niters += 1
     end
 
@@ -142,8 +142,8 @@ function _candecomp{T,N}(
     IB = [min(n1 - 1, r), (n2 == r) ? 2 : 1]
     Q = qr(factors[1], thin=false)[1]
     Z = qr(flipdim(factors[2], 2), thin=false)[1]
-    q = Array(Float64, n1, n1)
-    z = Array(Float64, n2, n2)
+    q = Array{Float64}(n1, n1)
+    z = Array{Float64}(n2, n2)
 
     R = zeros(size(tnsr))
     @tensor R[4,5,3] = tnsr[1,2,3] * Q[1,4] * Z[2,5]
@@ -171,7 +171,7 @@ function _candecomp{T,N}(
 
         res_old = res
         res = vecnorm(tril(squeeze(sum(R .^ 2, 3), 3), n2 - r - 1))
-        converged = abs(res - res_old) < tol
+        converged = abs.(res - res_old) < tol
         niters += 1
     end
 
@@ -184,19 +184,19 @@ function _candecomp{T,N}(
             d = (i + 1):(j - 1)
             println(d)
     
-            M[i, j, :] = hcat(r[j, j, :][:], r[i, i, :][:]) \ (r[i, j, :][:] - mapslices(R3 -> sum(M[i, d, 1] * (diag(R3)[d] .* M[d, j, 2])), R, [1, 2])[:])
+            M[i, j, :] = hcat(r[j, j, :][:], r[i, i, :][:]) \ (r[i, j, :][:] - mapslices(R3 -> sum(M[i, d, 1] * broadcast(*, diag(R3)[d], M[d, j, 2])), R, [1, 2])[:])
         end
     end
 
     factors[1] = Q[:, 1:r] * M[:, :, 1]
     factors[2] = Z[:, n2 - r + 1:n2] * M[:, :, 2]'
-    factors[3] = _row_unfold(tnsr, 3) * khatrirao(factors[2], factors[1]) / ((factors[2]'factors[2]) .* (factors[1]'factors[1]))
+    factors[3] = _row_unfold(tnsr, 3) * khatrirao(factors[2], factors[1]) / broadcast(*, factors[2]'factors[2], factors[1]'factors[1])
 
     lbds = ones(1, r)
     for i in 1:3
         lbd = mapslices(vecnorm, factors[i], 1)
         factors[i] ./= lbd
-        lbds .*= lbd
+        lbds = broadcast(*, lbds, lbd)
     end
 
     return CANDECOMP((factors...), squeeze(lbds, 1))
@@ -206,4 +206,4 @@ end
 Codes of implemented CANDECOMP methods.
 """
 const CANDECOMP_methods = Symbol[t.parameters[1] for t in filter(t -> isa(t, DataType),
-                                                                 [m.sig.parameters[2].parameters[1] for m in methods(_candecomp)])] |> Set{Symbol}
+                                                                 [Base.unwrap_unionall(m.sig).parameters[2].parameters[1] for m in methods(_candecomp)])] |> Set{Symbol}

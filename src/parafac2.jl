@@ -41,7 +41,7 @@ function parafac2{S<:Matrix}(X::Vector{S},
     A = eigs(sum(map(Xi -> Xi'Xi, X)), nev=r)[2]
     G = Matrix{Float64}[eye(r), eye(r), ones(r, r) * m]
     H = Matrix{Float64}[(size(X[i], 1) > size(X[i], 2) ? qr(X[i])[2]: X[i]) for i in 1:m]
-    P = Array(Matrix{Float64}, m)
+    P = Array{Matrix{Float64}}(m)
 
     niters = 0
     converged = false
@@ -64,7 +64,7 @@ function parafac2{S<:Matrix}(X::Vector{S},
         D = Matrix{Float64}[B[i, :]' for i in 1:m]
 
         resid_old = resid
-        resid = sum(k -> sumabs2(H[k] - P[k] * A_mul_Bt(F .* D[k], A)), 1:m)
+        resid = sum(k -> sum(abs2, H[k] - P[k] * A_mul_Bt(F .* D[k], A)), 1:m)
         converged = abs(resid - resid_old) < tol * resid_old
 
         niters += 1

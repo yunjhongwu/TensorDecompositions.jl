@@ -77,7 +77,7 @@ function _spnntucker_reg_penalty{T,N}(decomp::Tucker{T,N}, lambdas::Vector{T})
     for i in 1:N
         res += lambdas[i] > 0.0 ? (lambdas[i] * sum(decomp.factors[i])) : 0.0
     end
-    return res + (lambdas[N+1] > 0.0 ? (lambdas[N+1] * sumabs(decomp.core)) : 0.0)
+    return res + (lambdas[N+1] > 0.0 ? (lambdas[N+1] * sum(abs, decomp.core)) : 0.0)
 end
 
 _spnntucker_project{PRJ}(::Type{Val{PRJ}}, x, lambda, bound) = throw(ArgumentError("Unknown project type: $PRJ"))

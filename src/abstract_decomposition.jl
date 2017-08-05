@@ -1,7 +1,7 @@
 """
 Abstract decomposition of N-mode tensor.
 """
-abstract TensorDecomposition{T<:Number, N}
+abstract type TensorDecomposition{T<:Number, N} end
 
 """
 Returns relative error between the re-composed and the original tensors.

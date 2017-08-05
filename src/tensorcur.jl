@@ -53,14 +53,14 @@ function tensorcur3(tnsr::StridedArray,
 
     Cindex = rand(Categorical(p), c)
     Rindex = rand(Categorical(q), r)
-    Cweight = fit(Histogram, Cindex, 0:size(tnsr, slab_axis)).weights
-    Rweight = fit(Histogram, Rindex, 0:prod(fiber_size)).weights
+    Cweight = fit(Histogram, Cindex, 0:size(tnsr, slab_axis), closed=:right).weights
+    Rweight = fit(Histogram, Rindex, 0:prod(fiber_size), closed=:right).weights
     Cindex = sort(unique(Cindex))
     Rindex = sort(unique(Rindex))
     Cweight = Cweight[Cindex]
     Rweight = Rweight[Rindex]
 
-    U = compute_u ? Array(Float64, r, c) : zeros(0, 0)
+    U = compute_u ? Array{Float64}(r, c) : zeros(0, 0)
     if compute_u
         P = (Cweight*Rweight') ./ (p[Cindex]*q[Rindex]')
         W = squeeze(permutedims(mapslices(slab -> slab[Rindex],

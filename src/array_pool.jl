@@ -5,7 +5,7 @@ and reduce the burden on garbage collection.
 immutable ArrayPool{T<:Number}
     length_pools::Dict{Int, Vector{Vector{T}}}
 
-    ArrayPool() = new(Dict{Int, Vector{Vector{T}}}())
+    ArrayPool{T}() where {T<:Number} = new(Dict{Int, Vector{Vector{T}}}())
 end
 
 """

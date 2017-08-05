@@ -54,14 +54,14 @@ function sshopm{T,N}(tnsr::AbstractArray{T,N},
     niters = 0
     while !converged && niters < maxiter
         copy!(x_old, x)
-        x = flipsign(A_mul_B(tnsr, x) + alpha * x, alpha)
+        x = flipsign.(A_mul_B(tnsr, x) + alpha * x, alpha)
         x *= 1/vecnorm(x)
         converged = vecnorm(x - x_old) < tol
         niters += 1
     end
 
     verbose && _iter_status(converged, niters, maxiter)
-    return (dot(x, A_mul_B(tnsr, x)), flipsign(x, alpha))
+    return (dot(x, A_mul_B(tnsr, x)), flipsign.(x, alpha))
 end
 
 function A_mul_B{T,N}(tnsr::StridedArray{T,N}, x::Vector{T})

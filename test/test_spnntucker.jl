@@ -6,8 +6,8 @@ context("nonnegative decomposition") do
     tnsr_orig = compose(tucker_orig)
 
     tnsr_max = maximum(tnsr_orig)
-    map!(x -> x / tnsr_max, tucker_orig.core)
-    map!(x -> x / tnsr_max, tnsr_orig)
+    map!(x -> x / tnsr_max, tucker_orig.core, tucker_orig.core)
+    map!(x -> x / tnsr_max, tnsr_orig, tnsr_orig)
 
     tnsr = add_noise(tnsr_orig, 0.6, true)
 
@@ -26,8 +26,8 @@ context("semi-nonnegative decomposition") do
     tnsr_orig = compose(tucker_orig)
 
     tnsr_max = maximum(tnsr_orig)
-    map!(x -> x / tnsr_max, tucker_orig.core)
-    map!(x -> x / tnsr_max, tnsr_orig)
+    map!(x -> x / tnsr_max, tucker_orig.core, tucker_orig.core)
+    map!(x -> x / tnsr_max, tnsr_orig, tnsr_orig)
 
     tnsr = add_noise(tnsr_orig, 0.6, false)
 

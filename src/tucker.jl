@@ -6,8 +6,7 @@ immutable Tucker{T<:Number, N} <: TensorDecomposition{T, N}
     core::StridedArray{T, N}      # core tensor
     props::Dict{Symbol, Any}      # extra properties
 
-    Tucker(factors::NTuple{N, Matrix{T}}, core::StridedArray{T, N}) =
-        new(factors, core, Dict{Symbol, Any}())
+    Tucker{T, N}(factors::NTuple{N, Matrix{T}}, core::StridedArray{T, N}) where {T<:Number, N} = new(factors, core, Dict{Symbol, Any}())
 
     (::Type{Tucker}){T, N}(factors::NTuple{N, Matrix{T}}, core::StridedArray{T, N}) =
         Tucker{T, N}(factors, core)
@@ -39,9 +38,9 @@ function rescale!{T,N}(decomp::Tucker{T,N}, s::T)
     total_length = length(decomp.core) + sum(map(length, decomp.factors)) # total elements in the decomposition
     for F in decomp.factors
         f_s = s^(length(F)/total_length)/vecnorm(F)
-        map!(x -> x*f_s, F)
+        map!(x -> x*f_s, F, F)
     end
     core_s = s^(length(decomp.core)/total_length)/vecnorm(decomp.core)
-    map!(x -> x*core_s, decomp.core)
+    map!(x -> x*core_s, decomp.core, decomp.core)
     return decomp
 end

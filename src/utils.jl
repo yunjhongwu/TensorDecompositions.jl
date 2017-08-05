@@ -114,7 +114,7 @@ function _iter_status(converged::Bool, niters::Integer, maxiter::Integer)
                 warn("Maximum number $(maxiter) of iterations exceeded.")
 end
 
-_check_sign(v::StridedVector) = sign(v[findmax(abs(v))[2]]) * v
+_check_sign(v::StridedVector) = sign(v[findmax(abs.(v))[2]]) * v
 
 """
 Checks the validity of the core tensor dimensions.
