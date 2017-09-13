@@ -36,7 +36,7 @@ Re-composes the tensor from CANDECOMP decomposition.
         @inbounds for j in eachindex(lambdas)
             elm += lambdas[j] * (*(@ntuple($N, k -> factors[k][i_k, j])...))
         end
-        @nref($N, dest, i) = elm
+        @inbounds @nref($N, dest, i) = elm
     end
     return dest
   end
