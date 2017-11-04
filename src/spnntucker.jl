@@ -31,7 +31,7 @@ immutable SPNNTuckerHelper{T<:Number, N}
     arr_pool::ArrayPool{T}
 
     function (::Type{SPNNTuckerHelper}){T, N}(tnsr::Array{T,N}, core_dims::NTuple{N,Int},
-                                              lambdas::Vector{Float64}, bounds::Vector{T}, 
+                                              lambdas::Vector{Float64}, bounds::Vector{T},
                                               Lmin::Float64; verbose::Bool=false)
         verbose && info("Precomputing input tensor unfoldings...")
         tnsr_dims = size(tnsr)
@@ -232,7 +232,8 @@ function spnntucker{T,N}(tnsr::StridedArray{T, N}, core_dims::NTuple{N, Int};
                          lambdas::Vector{Float64} = fill(0.0, N+1),
                          Lmin::Float64 = 1.0, rw::Float64=0.9999,
                          bounds::Vector{Float64} = fill(Inf, N+1), ini_decomp = nothing,
-                         verbose::Bool=false)
+                         verbose::Bool=false,
+                         progressbar::Bool=true)
     start_time = time()
 
     # define "kernel" functions for "fixing" the core tensor after iteration
@@ -312,7 +313,7 @@ function spnntucker{T,N}(tnsr::StridedArray{T, N}, core_dims::NTuple{N, Int};
     pb = Progress(max_iter, "Alternating proximal gradient iterations")
     niter = 1
     while !converged
-        update!(pb, niter)
+        progressbar && update!(pb, niter) # progress bar slows parallel executions; also becomes unreadable due to overlaps
 
         residn0 = resid
         _spnntucker_update_tensorXfactors_low!(helper, decomp0)

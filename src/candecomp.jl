@@ -60,7 +60,7 @@ function candecomp{T,N}(tnsr::StridedArray{T,N},
                    compute_error::Bool=false,
                    verbose::Bool=true)
 
-    _check_tensor(tnsr, r)
+    # _check_tensor(tnsr, r) # decompositions with some of the sizes equal to the original tensor should be allowed
     verbose && info("initializing factor matrices...")
     all([(size(tnsr, i), r) == size(initial_guess[i]) for i in 1:N]) || throw(ArgumentError("dimension of initial guess does not match input tensor."))
     factors = collect(Matrix{T}, initial_guess)
@@ -183,7 +183,7 @@ function _candecomp{T,N}(
         if i + 1 < j
             d = (i + 1):(j - 1)
             println(d)
-    
+
             M[i, j, :] = hcat(r[j, j, :][:], r[i, i, :][:]) \ (r[i, j, :][:] - mapslices(R3 -> sum(M[i, d, 1] * broadcast(*, diag(R3)[d], M[d, j, 2])), R, [1, 2])[:])
         end
     end
