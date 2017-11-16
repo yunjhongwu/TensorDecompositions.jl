@@ -1,17 +1,18 @@
 """
 Canonical polyadic N-mode tensor decomposition (CANDECOMP/PARAFAC).
 """
-immutable CANDECOMP{T<:Number, N} <: TensorDecomposition{T, N}
+struct CANDECOMP{T<:Number, N} <: TensorDecomposition{T, N}
   factors::NTuple{N, Matrix{T}} # rank X i-th tensor mode factor matrices
   lambdas::Vector{T}
   props::Dict{Symbol, Any}      # extra properties
 
   CANDECOMP{T, N}(factors::NTuple{N, Matrix{T}}, lambdas::Vector{T}) where {T<:Number, N} =
     new(factors, lambdas, Dict{Symbol, Any}())
-
-  (::Type{CANDECOMP}){T, N}(factors::NTuple{N, Matrix{T}}, lambdas::Vector{T}) =
-    CANDECOMP{T, N}(factors, lambdas)
 end
+
+
+CANDECOMP(factors::NTuple{N, Matrix{T}}, lambdas::Vector{T}) where {T<:Number, N} =
+    CANDECOMP{T, N}(factors, lambdas)
 
 """
 Returns CANDECOMP rank.
@@ -21,7 +22,7 @@ Base.rank(decomp::CANDECOMP) = length(decomp.lambdas)
 """
 Re-composes the tensor from CANDECOMP decomposition.
 """
-@generated function compose!{T,N}(dest::Array{T,N}, factors::NTuple{N, Matrix{T}}, lambdas::Vector{T})
+@generated function compose!(dest::Array{T,N}, factors::NTuple{N, Matrix{T}}, lambdas::Vector{T}) where {T,N}
   quote
     @nloops $N i dest begin
         elm = zero(T)
@@ -35,7 +36,7 @@ Re-composes the tensor from CANDECOMP decomposition.
   end
 end
 
-@generated function compose{T,N}(factors::NTuple{N, Matrix{T}}, lambdas::Vector{T})
+@generated function compose(factors::NTuple{N, Matrix{T}}, lambdas::Vector{T}) where {T,N}
   quote
     compose!(Array{T}(@ntuple $N i -> size(factors[i], 1)), factors, lambdas)
   end
@@ -43,7 +44,8 @@ end
 
 compose(decomp::CANDECOMP) = compose(decomp.factors, decomp.lambdas)
 
-compose!{T,N}(dest::Array{T,N}, decomp::CANDECOMP{T,N}) = compose!(dest, decomp.factors, decomp.lambdas)
+compose!(dest::Array{T,N}, decomp::CANDECOMP{T,N}) where {T,N} =
+    compose!(dest, decomp.factors, decomp.lambdas)
 
 """
 Calculates canonical polyadic tensor decomposition (CANDECOMP/PARAFAC).
@@ -51,14 +53,14 @@ Calculates canonical polyadic tensor decomposition (CANDECOMP/PARAFAC).
 Returns:
   `CANDECOMP` object
 """
-function candecomp{T,N}(tnsr::StridedArray{T,N},
+function candecomp(tnsr::StridedArray{T,N},
                    r::Integer,
                    initial_guess::NTuple{N, Matrix{T}};
                    method::Symbol=:ALS,
                    tol::Float64=1e-5,
                    maxiter::Integer=100,
                    compute_error::Bool=false,
-                   verbose::Bool=true)
+                   verbose::Bool=true) where {T,N}
 
     _check_tensor(tnsr, r)
     verbose && info("initializing factor matrices...")
@@ -73,26 +75,27 @@ function candecomp{T,N}(tnsr::StridedArray{T,N},
 end
 
 "Stub for non-implemented CANDECOMP algorithms."
-_candecomp{T,N,S<:Symbol}(
+_candecomp(
   method::Val{S},
   tnsr::StridedArray{T,N},
   r::Integer,
   factors::Vector{Matrix{Float64}},
   tol::Float64,
   maxiter::Integer,
-  verbose::Bool) = throw(ArgumentError("Unknown CANDECOMP method: $method"))
+  verbose::Bool) where {T,N,S<:Symbol} =
+    throw(ArgumentError("Unknown CANDECOMP method: $method"))
 
 """
 Computes CANDECOMP by ALS (Alternating Least Squares) method.
 """
-function _candecomp{T,N}(
+function _candecomp(
     method::Type{Val{:ALS}},
     tnsr::StridedArray{T,N},
     r::Integer,
     factors::Vector{Matrix{Float64}},
     tol::Float64,
     maxiter::Integer,
-    verbose::Bool)
+    verbose::Bool) where {T,N}
 
     gram = [F'F for F in factors]
     tnsr_norm = vecnorm(tnsr)
@@ -128,14 +131,14 @@ end
 """
 Computes CANDECOMP by SGSD (Simultaneous Generalized Schur Decomposition) method.
 """
-function _candecomp{T,N}(
+function _candecomp(
     method::Type{Val{:SGSD}},
     tnsr::StridedArray{T,N},
     r::Int,
     factors::Vector{Matrix{Float64}},
     tol::Float64,
     maxiter::Integer,
-    verbose::Bool)
+    verbose::Bool) where {T,N}
 
     ndims(tnsr) == 3 || throw(ArgumentError("This algorithm only applies to 3-mode tensors."))
     (n1, n2, n3) = size(tnsr)
@@ -183,7 +186,7 @@ function _candecomp{T,N}(
         if i + 1 < j
             d = (i + 1):(j - 1)
             println(d)
-    
+
             M[i, j, :] = hcat(r[j, j, :][:], r[i, i, :][:]) \ (r[i, j, :][:] - mapslices(R3 -> sum(M[i, d, 1] * broadcast(*, diag(R3)[d], M[d, j, 2])), R, [1, 2])[:])
         end
     end

@@ -1,7 +1,7 @@
 """
 CUR (columns-U-rows) 3-tensor decomposition.
 """
-immutable CUR <: TensorDecomposition{Float64, 3}
+struct CUR <: TensorDecomposition{Float64, 3}
     Cindex::Vector{Int64}
     Cweight::Vector{Int64}
     Rindex::Vector{NTuple{2, Int64}}

@@ -1,17 +1,17 @@
 """
 Parallel Factor Analysis (PARAFAC) decomposition
 """
-immutable PARAFAC2{T<:Number, N} <: TensorDecomposition{T, N}
+struct PARAFAC2{T<:Number, N} <: TensorDecomposition{T, N}
     factors::NTuple{N, Matrix{T}}
     D::Vector{Matrix{T}}
     A::Matrix{T}
     props::Dict{Symbol, Any}
 
-    function (::Type{PARAFAC2}){T}(
+    function PARAFAC2(
                    X::Vector{Matrix{T}},
                    F::Matrix{Float64},
                    D::Vector{Matrix{Float64}},
-                   A::Matrix{Float64})
+                   A::Matrix{Float64}) where T
         factors = (map(function (Xi, Di)
             U = svd(A_mul_Bt(F .* Di, Xi * A))
             U[3] * (U[1]'F)
@@ -24,12 +24,12 @@ end
 """
 PARAFAC2 model
 """
-function parafac2{S<:Matrix}(X::Vector{S},
-                             r::Integer;
-                             tol::Float64=1e-5,
-                             maxiter::Integer=100,
-                             compute_error::Bool=false,
-                             verbose::Bool=true)
+function parafac2(X::Vector{S},
+                  r::Integer;
+                  tol::Float64=1e-5,
+                  maxiter::Integer=100,
+                  compute_error::Bool=false,
+                  verbose::Bool=true) where S<:Matrix
     m = length(X)
     n = size(X[1], 2)
     for i in 2:m

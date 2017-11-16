@@ -5,7 +5,7 @@ Sparse N-mode array.
 `pos` is `N`x`L` matrix of non-zero elements indices.
 `dims` is `NTuple` of array dimensions.
 """
-immutable SparseArray{T, N} <: AbstractArray{T, N}
+struct SparseArray{T, N} <: AbstractArray{T, N}
     vals::Vector{T}
     pos::Matrix{Int}
     dims::NTuple{N,Int}
@@ -79,4 +79,3 @@ function A_mul_B{T,N}(tnsr::SparseArray{T,N}, x::Vector{T})
     end
     return v
 end
-

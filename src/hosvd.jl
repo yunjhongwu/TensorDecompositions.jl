@@ -1,8 +1,8 @@
 """
 High-order singular value decomposition (HO-SVD).
 """
-function hosvd{T,N}(tensor::StridedArray{T,N}, core_dims::NTuple{N, Int};
-                    pad_zeros::Bool=false, compute_error::Bool=false)
+function hosvd(tensor::StridedArray{T,N}, core_dims::NTuple{N, Int};
+               pad_zeros::Bool=false, compute_error::Bool=false) where {T,N}
     pad_zeros || _check_tensor(tensor, core_dims)
 
     factors = map(1:N) do i
@@ -21,5 +21,5 @@ function hosvd{T,N}(tensor::StridedArray{T,N}, core_dims::NTuple{N, Int};
     return res
 end
 
-hosvd{T,N}(tensor::StridedArray{T,N}, r::Int; compute_error::Bool=false) =
+hosvd(tensor::StridedArray{T,N}, r::Int; compute_error::Bool=false) where {T,N} =
     hosvd(tensor, (fill(r, N)...); compute_error=compute_error)
