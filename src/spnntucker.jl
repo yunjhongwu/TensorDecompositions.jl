@@ -227,6 +227,7 @@ See Y. Xu, "Alternating proximal gradient method for sparse nonnegative Tucker d
 See http://www.caam.rice.edu/~optimization/bcu/`
 """
 function spnntucker{T,N}(tnsr::StridedArray{T, N}, core_dims::NTuple{N, Int};
+                         eigmethod=trues(N),
                          core_nonneg::Bool=true, tol::Float64=1e-4, hosvd_init::Bool=false,
                          max_iter::Int=500, max_time::Float64=0.0,
                          lambdas::Vector{Float64} = fill(0.0, N+1),
@@ -261,18 +262,17 @@ function spnntucker{T,N}(tnsr::StridedArray{T, N}, core_dims::NTuple{N, Int};
 
     if ini_decomp === nothing
         verbose && info("Generating random initial factor matrices and core tensor estimates...")
-        ini_decomp = Tucker((Matrix{T}[randn(size(tnsr, i), core_dims[i]) for i in 1:N]...),
-                            randn(core_dims...))
+        ini_decomp = Tucker((Matrix{T}[randn(size(tnsr, i), core_dims[i]) for i in 1:N]...), randn(core_dims...))
         rescale_ini = true
     elseif ini_decomp == :hosvd
         verbose && info("Using High-Order SVD to get initial decomposition...")
         # "solve" Z = tnsr x_1 U_1' ... x_K U_K'
-        ini_decomp = hosvd(tnsr, core_dims, pad_zeros=true)
+        ini_decomp = hosvd(tnsr, core_dims, eigmethod; pad_zeros=true)
         rescale_ini = true
     elseif isa(ini_decomp, Tucker{T,N})
-        rescale_ini = false
+        rescale_ini = true
     else
-        throw(ArgumentError("Incorrect ini_decomp value"))
+        throw(ArgumentError("Incorrect ini_decomp value $(typeof(ini_decomp))"))
     end
 
     #verbose && info("Initializing helper object...")

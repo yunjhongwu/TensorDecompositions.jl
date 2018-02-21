@@ -3,19 +3,18 @@ import TensorToolbox
 """
 High-order singular value decomposition (HO-SVD).
 """
-function hosvd{T,N}(tensor::StridedArray{T,N}, core_dims::NTuple{N, Int}, dim=trues(N);
-					pad_zeros::Bool=false, compute_error::Bool=false)
+function hosvd{T,N}(tensor::StridedArray{T,N}, core_dims::NTuple{N, Int}, eigmethod=trues(N); pad_zeros::Bool=false, compute_error::Bool=false)
 	pad_zeros || _check_tensor(tensor, core_dims)
 
 	factors = map(1:N) do i
 		X = _col_unfold(tensor, i)
-		if dim[i]
+		if eigmethod[i]
 			f = eigs(X'X, nev=core_dims[i])[2]
 		else
-			f = rand(size(X'))
+			f = eig(X'X)[2]
 		end
 		if pad_zeros && size(f, 2) < core_dims[i] # fill missing factors with zeros
-			warn("Zeros added in dimension $i $(core_dims[i]-size(f, 2))")
+			warn("Zero slices ($(core_dims[i]-size(f, 2))) added in dimension $i ")
 			f = hcat(f, zeros(T, size(tensor, i), core_dims[i]-size(f, 2)))
 		end
 		mapslices(_check_sign, f, 1)
@@ -30,5 +29,5 @@ function hosvd{T,N}(tensor::StridedArray{T,N}, core_dims::NTuple{N, Int}, dim=tr
 	return res
 end
 
-hosvd{T,N}(tensor::StridedArray{T,N}, r::Int; compute_error::Bool=false) =
-	hosvd(tensor, (fill(r, N)...); compute_error=compute_error)
+hosvd{T,N}(tensor::StridedArray{T,N}, r::Int; compute_error::Bool=false, pad_zeros::Bool=false) =
+	hosvd(tensor, (fill(r, N)...); compute_error=compute_error, pad_zeros=pad_zeros)
