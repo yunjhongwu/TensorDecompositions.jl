@@ -1,5 +1,4 @@
 # utilities
-_as_vector(arr::Array{T}) where {T} = reinterpret(T, arr, (length(arr),))::Vector{T}
 
 function tensorcontractmatrix(tnsr::StridedArray{T,N}, mtx::Matrix{T}, n::Int;
                               transpose::Bool=false, method::Symbol=:BLAS) where {T,N}

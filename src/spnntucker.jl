@@ -95,16 +95,16 @@ function _spnntucker_update_core!(prj::Type{Val{PRJ}},
     helper::SPNNTuckerHelper{T,N}, dest::Tucker{T,N}, src::Tucker{T,N},
     src_factor2s::Vector{Matrix{T}}, n::Int) where {T,N,PRJ}
 
-    tensorXfactors_all = _as_vector(n < N ?
+    tensorXfactors_all = vec(n < N ?
         tensorcontractmatrices!(acquire!(helper, helper.core_dims),
                                 helper.tnsrXfactors_low[n], dest.factors[(n+1):N], (n+1):N) :
         helper.tnsrXfactors_low[N])::Vector{T}
     s = (1.0/helper.L[N+1])::Float64
-    core_grad = _as_vector(tensorcontractmatrices!(acquire!(helper, helper.core_dims), src.core, src_factor2s))::Vector{T}
+    core_grad = vec(tensorcontractmatrices!(acquire!(helper, helper.core_dims), src.core, src_factor2s))::Vector{T}
     s_lambda = (helper.lambdas[N+1]/helper.L[N+1])::Float64
     bound = helper.bounds[N+1]::T
-    src_core = _as_vector(src.core)::Vector{T}
-    dest_core = _as_vector(dest.core)::Vector{T}
+    src_core = vec(src.core)::Vector{T}
+    dest_core = vec(dest.core)::Vector{T}
     @simd for i in eachindex(dest_core)
         @inbounds dest_core[i] = _spnntucker_project(prj, src_core[i] - s*(core_grad[i] - tensorXfactors_all[i]),
                                                      s_lambda, bound)
@@ -121,15 +121,15 @@ function _spnntucker_update_factor!(
     dest_factor2s::Vector{Matrix{T}}, n::Int
 ) where {T,N}
     coreXantifactor2, tnsrXcoreXantifactor = _spnntucker_factor_grad_components!(helper, dest, n)::Tuple{Matrix{T}, Matrix{T}}
-    factorXcoreXantifactor2 = _as_vector(A_mul_B!(acquire!(helper, size(src.factors[n])), src.factors[n], coreXantifactor2))
+    factorXcoreXantifactor2 = vec(A_mul_B!(acquire!(helper, size(src.factors[n])), src.factors[n], coreXantifactor2))
 
     # update Lipschitz constant
     helper.L0[n] = helper.L[n]
     helper.L[n] = max(helper.Lmin, vecnorm(coreXantifactor2))
     s = (1.0/helper.L[n])
     # update n-th factor matrix
-    src_factor = _as_vector(src.factors[n])
-    dest_factor = _as_vector(dest.factors[n])
+    src_factor = vec(src.factors[n])
+    dest_factor = vec(dest.factors[n])
     lambda = helper.lambdas[n]
     bound = helper.bounds[n]
     for i in eachindex(src_factor)
@@ -141,14 +141,14 @@ function _spnntucker_update_factor!(
         end
         @inbounds dest_factor[i] = f
     end
-    dest_factor2 = _as_vector(At_mul_B!(dest_factor2s[n], dest.factors[n], dest.factors[n]))
-    coreXantifactor2_v = _as_vector(coreXantifactor2)
+    dest_factor2 = vec(At_mul_B!(dest_factor2s[n], dest.factors[n], dest.factors[n]))
+    coreXantifactor2_v = vec(coreXantifactor2)
     factor2XcoreXantifactor2 = 0.0
     @simd for i in eachindex(dest_factor2)
         @inbounds factor2XcoreXantifactor2 += dest_factor2[i] * coreXantifactor2_v[i]
     end
     factorXtnsrXcoreXantifactor = 0.0
-    tnsrXcoreXantifactor_v = _as_vector(tnsrXcoreXantifactor)
+    tnsrXcoreXantifactor_v = vec(tnsrXcoreXantifactor)
     @simd for i in eachindex(dest_factor)
         @inbounds factorXtnsrXcoreXantifactor += dest_factor[i] * tnsrXcoreXantifactor_v[i]
     end
