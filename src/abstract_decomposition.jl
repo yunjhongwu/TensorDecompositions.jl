@@ -7,7 +7,7 @@ abstract type TensorDecomposition{T<:Number, N} end
 Returns relative error between the re-composed and the original tensors.
 """
 rel_residue(recomposed::StridedArray{T, N}, tensor::StridedArray{T, N}) where {T,N} =
-    vecnorm(recomposed - tensor) / vecnorm(tensor)
+    vecnorm(recomposed .- tensor) / vecnorm(tensor)
 
 """
 Returns relative error between re-composed and the original tensor.
