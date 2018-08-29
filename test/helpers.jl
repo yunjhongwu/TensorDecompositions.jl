@@ -2,8 +2,7 @@ function rand_candecomp(r::Int64, dims::NTuple{N, Int};
                         lambdas_nonneg::Bool=false, factors_nonneg::Bool=false) where N
     rnd_factor = factors_nonneg ? x -> abs.(randn(x...)) : randn
     rnd_lambda = lambdas_nonneg ? x -> abs.(randn(x...)) : randn
-    return CANDECOMP((Matrix{Float64}[rnd_factor((s, r)) for s in dims]...),
-                     rnd_lambda(r))
+    return CANDECOMP(ntuple(i -> rnd_factor((dims[i], r)), N), rnd_lambda(r))
 end
 
 rand_kruskal3(r::Int64, dims::NTuple{N, Int}, nonnegative::Bool) where {N} =
@@ -13,7 +12,7 @@ function rand_tucker(core_dims::NTuple{N, Int}, dims::NTuple{N, Int};
                      core_nonneg::Bool=false, factors_nonneg::Bool=false) where {N}
     rnd_factor = factors_nonneg ? x -> abs.(randn(x...)) : randn
     rnd_core = core_nonneg ? x -> abs.(randn(x...)) : randn
-    return Tucker((Matrix{Float64}[rnd_factor((dims[i], core_dims[i])) for i in 1:N]...),
+    return Tucker(ntuple(i -> rnd_factor((dims[i], core_dims[i])), N),
                   rnd_core(core_dims))
 end
 

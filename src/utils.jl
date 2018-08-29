@@ -62,7 +62,7 @@ Returns:
   * a vector of `N` (orig[n], core[n])-sized matrices
 """
 _random_factors(orig_dims::NTuple{N, Int}, core_dims::NTuple{N, Int}) where {N} =
-    Matrix{Float64}[randn(dims...) for dims in zip(orig_dims, core_dims)]
+    Matrix{Float64}[randn(o_dim, c_dim) for (o_dim, c_dim) in zip(orig_dims, core_dims)]
 
 """
 Generates random factor matrices for Tucker/CANDECOMP decompositions if core tensor is `r^N` hypercube.
@@ -71,7 +71,7 @@ Returns:
   * a vector of `N` (orig[n], r)-sized matrices
 """
 _random_factors(dims::NTuple{N, Int}, r::Integer) where {N} =
-    _random_factors(dims, (fill(r, N)...))
+    _random_factors(dims, ntuple(_ -> r, N))
 
 """
 Calculates Khatri-Rao product of two matrices (column-wise Kronecker product).
@@ -136,4 +136,4 @@ end
 Checks the validity of the core tensor dimensions, where core tensor is `r^N` hypercube.
 """
 _check_tensor(tensor::StridedArray{T, N}, r::Integer) where {T<:Real,N} =
-    _check_tensor(tensor, (fill(r, N)...))
+    _check_tensor(tensor, ntuple(_ -> r, N))

@@ -36,7 +36,7 @@ struct SPNNTuckerHelper{T<:Number, N}
         verbose && info("Precomputing input tensor unfoldings...")
         tnsr_dims = size(tnsr)
         new{T,N}(tnsr, vecnorm(tnsr), core_dims,
-                 Array{T,N}[Array{T}(core_dims[1:n]..., tnsr_dims[(n+1):N]...) for n in 1:N],
+                 Array{T,N}[Array{T}(ntuple(i -> i <= n ? core_dims[i] : tnsr_dims[i], N)) for n in 1:N],
                  lambdas, bounds,
                  Lmin, fill(1.0, N+1), fill(1.0, N+1), ArrayPool{T}()
         )

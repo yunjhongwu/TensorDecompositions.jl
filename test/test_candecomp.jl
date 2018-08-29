@@ -1,7 +1,7 @@
 @testset "CANDECOMP" begin
     r = 2
     T = rand_kruskal3(r, (10, 20, 30), false)
-    initial_guess = tuple([randn(dim, r) for dim in size(T)]...)
+    initial_guess = ntuple(k -> randn(size(T, k), r), ndims(T))
 
     @testset "ALS (Alternating least squares)" begin
         @time factors = candecomp(T, r, initial_guess, tol=1e-6, compute_error=true, method=:ALS)

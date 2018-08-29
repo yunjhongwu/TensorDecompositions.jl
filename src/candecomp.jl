@@ -125,7 +125,7 @@ function _candecomp(
 
     verbose && _iter_status(converged, niters, maxiter)
 
-    return CANDECOMP((factors...), squeeze(lbds, 1))
+    return CANDECOMP(tuple(factors...), squeeze(lbds, 1))
 end
 
 """
@@ -202,7 +202,7 @@ function _candecomp(
         lbds = broadcast(*, lbds, lbd)
     end
 
-    return CANDECOMP((factors...), squeeze(lbds, 1))
+    return CANDECOMP(tuple(factors...), squeeze(lbds, 1))
 end
 
 """

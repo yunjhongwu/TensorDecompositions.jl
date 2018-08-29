@@ -21,5 +21,5 @@ function hosvd(tensor::StridedArray{T,N}, core_dims::NTuple{N, Int};
     return res
 end
 
-hosvd(tensor::StridedArray{T,N}, r::Int; compute_error::Bool=false) where {T,N} =
-    hosvd(tensor, (fill(r, N)...); compute_error=compute_error)
+hosvd(tensor::StridedArray, r::Int; compute_error::Bool=false) =
+    hosvd(tensor, ntuple(_ -> r, ndims(tensor)); compute_error=compute_error)

@@ -59,7 +59,7 @@ function nncp(tnsr::StridedArray,
 
     verbose && _iter_status(converged, niters, maxiter)
 
-    res = CANDECOMP((factors...), ones(r))
+    res = CANDECOMP(tuple(factors...), ones(r))
     if compute_error
       _set_rel_residue(res, tnsr)
     end
