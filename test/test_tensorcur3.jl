@@ -1,4 +1,5 @@
 @testset "Tensor-CUR" begin
+Random.seed!(12345)
 
 @testset "Small case" begin
     T = rand_kruskal3(2, (20, 40, 60), false)

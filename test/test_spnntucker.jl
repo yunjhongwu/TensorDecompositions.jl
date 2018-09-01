@@ -1,4 +1,5 @@
 @testset "Sparse (semi-)nonnegative Tucker decomposition" begin
+Random.seed!(12345)
 
 @testset "nonnegative decomposition" begin
     # An example of nonnegative and semi-nonnegative Tucker decomposition
