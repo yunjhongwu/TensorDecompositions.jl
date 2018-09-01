@@ -1,6 +1,6 @@
 The TensorDecompositions.jl package is licensed under the MIT "Expat" License:
 
-> Copyright (c) 2015: Yun-Jhong Wu.
+> Copyright (c) 2015-2018: Yun-Jhong Wu and contributors.
 >
 > Permission is hereby granted, free of charge, to any person obtaining
 > a copy of this software and associated documentation files (the
