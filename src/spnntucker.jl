@@ -105,7 +105,7 @@ function _spnntucker_update_core!(prj::Type{Val{PRJ}},
     bound = helper.bounds[N+1]
     dest.core .= _spnntucker_project.(prj, src.core .- s .* (core_grad .- tensorXfactors_all),
                                       s_lambda, bound)
-    release!(helper, tensorXfactors_all)
+    (n < N) && release!(helper, tensorXfactors_all) # not acquired if n < N
     release!(helper, core_grad)
     return dest
 end
