@@ -24,6 +24,12 @@ Re-composes the tensor from CANDECOMP decomposition.
 """
 @generated function compose!(dest::Array{T,N}, factors::NTuple{N, Matrix{T}}, lambdas::Vector{T}) where {T,N}
   quote
+    csize = @ntuple($N, k -> size(factors[k], 2))
+    @nall($N, k -> csize[k] == length(lambdas)) ||
+        throw(DimensionMismatch("length of lambdas ($(length(lambdas))) doesn't match the factors columns ($csize)"))
+    rsize = @ntuple($N, k -> size(factors[k], 1))
+    size(dest) == rsize ||
+        throw(DimensionMismatch("dest dimensions $(size(dest)) do not match the factors rows ($rsize)"))
     @nloops $N i dest begin
         elm = zero(T)
         # FIXME traversal of factors is not very efficient, would be better to have them transposed
