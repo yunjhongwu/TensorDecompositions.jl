@@ -82,26 +82,74 @@ _random_factors(dims::NTuple{N, Int}, r::Integer) where {N} =
     _random_factors(dims, ntuple(_ -> r, N))
 
 """
-Calculates Khatri-Rao product of two matrices (column-wise Kronecker product).
+    khatrirao!(dest::AbstractMatrix{T}, mtxs::NTuple{N, <:AbstractMatrix{T}})
+
+In-place Khatri-Rao matrices product (column-wise Kronecker product) calculation.
 """
-function khatrirao(A::AbstractMatrix{T}, B::AbstractMatrix{T}) where T
-    size(A, 2) == size(B, 2) ||
-        throw(DimensionMismatch("Input matrices have different number of columns ($(size(A, 2)) and $(size(B, 2)))"))
-    res = Matrix{T}(undef, size(A, 1) * size(B, 1), size(A, 2))
-    @inbounds for i in axes(A, 2)
-        Ai = view(A, :, i)
-        Bi = view(B, :, i)
-        resi = view(res, :, i)
-        for j1 in axes(A,1)
-            Aj1i = Ai[j1]
-            j1_offs = (j1-1) * size(B, 1)
-            for j2 in axes(B,2)
-                resi[j1_offs + j2] = Aj1i * Bi[j2]
+@generated function khatrirao!(dest::AbstractMatrix{T},
+                               mtxs::NTuple{N, <:AbstractMatrix{T}}) where {N, T}
+    (N === 1) && return quote
+        size(dest) == size(mtxs[1]) ||
+            throw(DimensionMismatch("Output and single input matrix have different sizes ($(size(dest)) and $(size(mtxs[1])))"))
+        return copyto!(dest, mtxs[1])
+    end
+    # generate the code for looping over the matrices 2:N
+    _innerloop = Base.Cartesian.lreplace(:(desti[offsj_k + 1] = destij_k), :k, N)
+    for k in N:-1:2
+        _innerloop = Base.Cartesian.lreplace(quote
+            for j_k in axes(mtxs[k], 1)
+                destij_k = destij_{k-1}*coli_k[j_k]
+                offsj_k = offsj_{k-1}*size(mtxs[k], 1) + j_k - 1
+                $_innerloop
             end
+        end, :k, k)
+    end
+    # main code
+    quote
+    # dimensions check
+    ncols = size(dest, 2)
+    for i in 1:length(mtxs)
+        (size(mtxs[i], 2) == ncols) ||
+            throw(DimensionMismatch("Output matrix and input matrix #$i have different number of columns ($ncols and $(size(mtxs[i], 2)))"))
+    end
+    nrows = prod(@ntuple($N, i -> size(mtxs[i], 1)))
+    size(dest, 1) == nrows ||
+        throw(DimensionMismatch("Output matrix rows and the expected number of rows do not match ($(size(dest, 1)) and $nrows)"))
+    # multiplication
+    @inbounds for i in axes(dest, 2)
+        @nexprs($N, k -> (coli_k = view(mtxs[k], :, i)))
+        desti = view(dest, :, i)
+        for j_1 in axes(mtxs[1], 1)
+            destij_1 = coli_1[j_1]
+            offsj_1 = j_1 - 1
+            $_innerloop
         end
     end
-    return res
+    return dest
+    end
 end
+
+khatrirao!(dest::AbstractMatrix, mtxs::AbstractVector) =
+    khatrirao!(dest, tuple(mtxs...))
+khatrirao!(dest::AbstractMatrix, mtxs...) = khatrirao!(dest, tuple(mtxs...))
+
+"""
+    khatrirao(mtxs::NTuple{N, <:AbstractMatrix{T}})
+
+Calculates Khatri-Rao product of a sequence of matrices (column-wise Kronecker product).
+"""
+function khatrirao(mtxs::NTuple{N, <:AbstractMatrix{T}}) where {N, T}
+    (N === 1) && return copy(first(mtxs))
+    ncols = size(first(mtxs), 2)
+    for i in 2:length(mtxs)
+        (size(mtxs[i], 2) == ncols) ||
+            throw(DimensionMismatch("Input matrices have different number of columns ($ncols and $(size(mtxs[i], 2)))"))
+    end
+    return khatrirao!(Matrix{T}(undef, prod(ntuple(i -> size(mtxs[i], 1), N)), ncols), mtxs)
+end
+
+khatrirao(mtxs::AbstractVector) = khatrirao(tuple(mtxs...))
+khatrirao(mtxs...) = khatrirao(tuple(mtxs...))
 
 """
 Unfolds the tensor into matrix, such that the specified

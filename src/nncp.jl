@@ -34,7 +34,7 @@ function nncp(tnsr::StridedArray,
             idx = [num_modes:-1:i+1; i-1:-1:1] # num_modes except i
             U .= reduce((x, y) -> x .* y, gram[idx]) # element-wise product of gram matrices
             LB[i] = norm(U)
-            M = _row_unfold(tnsr, i) * reduce(khatrirao, factors[idx])
+            M = _row_unfold(tnsr, i) * khatrirao(factors[idx])
             factors[i] = max.(0, factors_exp[i] .- (factors_exp[i] * U .- M) .* (1 / LB[i]))
             mul!(gram[i], factors[i]', factors[i])
         end

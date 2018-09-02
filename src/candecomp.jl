@@ -113,7 +113,7 @@ function _candecomp(
             idx = [N:-1:i + 1; i - 1:-1:1]
             nVi = length(tnsr) ÷ tnsr_size[i]
             Vi = view(V, 1:nVi, :)
-            Vi .= reduce(khatrirao, factors[idx])
+            khatrirao!(Vi, factors[idx])
             factors[i] .= _row_unfold(tnsr, i) * Vi / reduce((x, y) -> x .* y, gram[idx])
             sum!(abs, lbds, factors[i])
             factors[i] ./= lbds
