@@ -1,5 +1,5 @@
 @testset "CANDECOMP" begin
-    r = 2
+    r = 2 # core tensor dimensions
     T = rand_kruskal3(r, (10, 20, 30), false)
     initial_guess = ntuple(k -> randn(size(T, k), r), ndims(T))
 

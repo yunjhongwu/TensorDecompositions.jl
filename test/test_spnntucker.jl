@@ -7,7 +7,7 @@
 
     tnsr_max = maximum(tnsr_orig)
     tucker_orig.core ./= tnsr_max
-    tnsr_org ./= tnsr_max
+    tnsr_orig ./= tnsr_max
 
     tnsr = add_noise(tnsr_orig, 0.6, true)
 
@@ -38,7 +38,7 @@ end
 
     # Reporting
     @test rel_residue(tucker_spnn) < 0.05
-    info("Relative error of decomposition : $(rel_residue(tucker_spnn))")
+    @info("Relative error of decomposition : $(rel_residue(tucker_spnn))")
 end
 
 end

@@ -5,7 +5,7 @@ and reduce the burden on garbage collection.
 struct ArrayPool{T<:Number}
     length_pools::Dict{Int, Vector{Vector{T}}}
 
-    ArrayPool{T}() where {T<:Number} = new(Dict{Int, Vector{Vector{T}}}())
+    ArrayPool{T}() where {T<:Number} = new{T}(Dict{Int, Vector{Vector{T}}}())
 end
 
 """
@@ -17,7 +17,9 @@ function acquire!(pool::ArrayPool{T}, size) where T
     len_pool = haskey(pool.length_pools, len) ?
                pool.length_pools[len] :
                get!(pool.length_pools, len, Vector{Vector{T}}())
-    isempty(len_pool) ? Array{T}(size) : reinterpret(T, pop!(len_pool), size)
+    return isempty(len_pool) ?
+            Array{T}(undef, size) :
+            reshape(pop!(len_pool), size)
 end
 
 """
@@ -28,6 +30,6 @@ function release!(pool::ArrayPool{T}, arr::Array{T}) where T
     len_pool = haskey(pool.length_pools, len) ?
                pool.length_pools[len] :
                get!(pool.length_pools, len, Vector{Vector{T}}())
-    push!(len_pool, reinterpret(T, arr, (len,)))
-    pool
+    push!(len_pool, reshape(arr, (len,)))
+    return pool
 end
