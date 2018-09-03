@@ -1,21 +1,21 @@
 # utilities
 
-function tensorcontractmatrix(src::StridedArray{T,N}, mtx::StridedMatrix{T}, n::Int;
-                              transpose::Bool=false, method::Symbol=:BLAS) where {T,N}
-    #@info "TTM: src=$(size(src)) mtx=$(size(mtx)) n=$n transpose=$transpose method=$method"
-    tensorcontract(src, 1:N,
-                   mtx, [transpose ? N+1 : n, transpose ? n : N+1],
-                   [1:(n-1); N+1; (n+1):N], method=method)
-end
-
 function tensorcontractmatrix!(dest::StridedArray{T,N}, src::StridedArray{T,N},
                                mtx::StridedMatrix{T}, n::Int;
                                transpose::Bool=false, method::Symbol=:BLAS) where {T,N}
     #@info "TTM: dest=$(size(dest)) src=$(size(src)) mtx=$(size(mtx)) n=$n transpose=$transpose method=$method"
-    tensorcontract!(1, src, 1:N, 'N',
-                    mtx, [transpose ? N+1 : n, transpose ? n : N+1], 'N',
-                    0, dest, [1:(n-1); N+1; (n+1):N], method=method)
+    TensorOperations.contract!(1, src, Val{:N}, mtx, Val{:N}, 0, dest,
+                               ntuple(i -> i<n ? i : (i+1), N-1), (n,),
+                               transpose ? (1,) : (2,), transpose ? (2,) : (1,),
+                               ntuple(i -> i<n ? i : (i==n ? N : i-1), N),
+                               Val{method})
 end
+
+tensorcontractmatrix(tnsr::StridedArray{T,N}, mtx::StridedMatrix{T}, n::Int;
+                     transpose::Bool=false, method=nothing) where {T, N} =
+    tensorcontractmatrix!(Array{T, N}(undef, ntuple(i -> i != n ? size(tnsr, i)
+                                                                : size(mtx, transpose ? 1 : 2), N)),
+                          tnsr, mtx, n, transpose=transpose, method=method)
 
 """
 Contract N-mode tensor and M matrices.
