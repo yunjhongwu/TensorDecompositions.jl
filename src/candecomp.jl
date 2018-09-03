@@ -183,7 +183,7 @@ function _candecomp(
 
         res_old = res
         res = norm(tril(dropdims(sum(abs2, R, dims=3), dims=3), n2 - r - 1))
-        converged = abs(res - res_old) < tol
+        converged = abs(res - res_old) < tol * res_old
         niters += 1
     end
 
