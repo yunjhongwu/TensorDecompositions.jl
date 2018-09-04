@@ -152,8 +152,8 @@ function _candecomp(
     q = Matrix{Float64}(undef, n1, n1)
     z = Matrix{Float64}(undef, n2, n2)
 
-    R = similar(tnsr)
-    @tensor R[4,5,3] = tnsr[1,2,3] * Q[1,4] * Z[2,5]
+    @tensor R[4,5,3] := tnsr[1,2,3] * Q[1,4] * Z[2,5]
+    R2 = similar(R)
 
     res = norm(tnsr)
     converged = false
@@ -171,10 +171,9 @@ function _candecomp(
             q[:, i:n1] *= svd(view(q, :, i:n1)' * view(R, :, n2 - r + i, :)).U
         end
 
-        @tensor R[4,2,3] = R[1,2,3] * q[1,4]
-
+        @tensor R2[4,2,3] = R[1,2,3] * q[1,4]
         for i in r:-1:IB2
-            z[:, 1:n2 - r + i] *= reverse(svd(view(R, i, :, :)' * view(z, :, 1:n2 - r + i)).V, dims=2)
+            z[:, 1:n2 - r + i] *= reverse(svd(view(R2, i, :, :)' * view(z, :, 1:n2 - r + i)).V, dims=2)
         end
         Q *= q
         Z *= z
