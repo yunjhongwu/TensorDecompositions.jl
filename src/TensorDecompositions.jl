@@ -1,12 +1,10 @@
-__precompile__(false)
-# require("TensorOperations")
-
 module TensorDecompositions
     using TensorOperations
     using Distributions
     using ProgressMeter
     using Base.Cartesian
     using StatsBase
+    using LinearAlgebra
 
     export
 

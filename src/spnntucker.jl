@@ -1,13 +1,13 @@
 """
 State of sparse (semi-)nonnegative Tucker decomposition
 """
-immutable SPNNTuckerState
-    sqr_residue::Float64          # residue, i.e. 0.5 vecnorm(tnsr - recomposed)^2
+struct SPNNTuckerState
+    sqr_residue::Float64          # residue, i.e. 0.5 norm(tnsr - recomposed)^2
     rel_residue::Float64          # residue relative to the ||tnsr||
     rel_residue_delta::Float64    # residue delta relative to the current residue
 
     function SPNNTuckerState(sqr_residue::Float64, prev_sqr_residue::Float64, tnsr_nrm::Float64)
-        sqr_residue < -1E-10*tnsr_nrm^2 && warn("Negative residue: $sqr_residue")
+        sqr_residue < -1E-10*tnsr_nrm^2 && @warn("Negative residue: $sqr_residue")
         sqr_residue = max(0.0, sqr_residue)
         new(sqr_residue, sqrt(2*sqr_residue)/tnsr_nrm, abs(sqr_residue-prev_sqr_residue)/(prev_sqr_residue+1E-5))
     end
@@ -17,7 +17,7 @@ end
 """
 Helper object for spnntucker().
 """
-immutable SPNNTuckerHelper{T<:Number, N}
+struct SPNNTuckerHelper{T<:Number, N}
     tnsr::Array{T, N}
     tnsr_nrm::Float64
     core_dims::NTuple{N,Int}
@@ -30,13 +30,13 @@ immutable SPNNTuckerHelper{T<:Number, N}
     L0::Vector{Float64}
     arr_pool::ArrayPool{T}
 
-    function (::Type{SPNNTuckerHelper}){T, N}(tnsr::Array{T,N}, core_dims::NTuple{N,Int},
-                                              lambdas::Vector{Float64}, bounds::Vector{T}, 
-                                              Lmin::Float64; verbose::Bool=false)
-        verbose && info("Precomputing input tensor unfoldings...")
+    function SPNNTuckerHelper(tnsr::Array{T,N}, core_dims::NTuple{N,Int},
+                              lambdas::Vector{Float64}, bounds::Vector{T},
+                              Lmin::Float64; verbose::Bool=false) where {T, N}
+        verbose && @info("Precomputing input tensor unfoldings...")
         tnsr_dims = size(tnsr)
-        new{T,N}(tnsr, vecnorm(tnsr), core_dims,
-                 Array{T,N}[Array{T}(core_dims[1:n]..., tnsr_dims[(n+1):N]...) for n in 1:N],
+        new{T,N}(tnsr, norm(tnsr), core_dims,
+                 [Array{T,N}(undef, ntuple(i -> i <= n ? core_dims[i] : tnsr_dims[i], N)) for n in 1:N],
                  lambdas, bounds,
                  Lmin, fill(1.0, N+1), fill(1.0, N+1), ArrayPool{T}()
         )
@@ -46,7 +46,7 @@ end
 acquire!(helper::SPNNTuckerHelper, size) = acquire!(helper.arr_pool, size)
 release!(helper::SPNNTuckerHelper, size) = release!(helper.arr_pool, size)
 
-function _spnntucker_update_tensorXfactors_low!{T,N}(helper::SPNNTuckerHelper{T,N}, decomp::Tucker{T,N})
+function _spnntucker_update_tensorXfactors_low!(helper::SPNNTuckerHelper{T,N}, decomp::Tucker{T,N}) where {T,N}
     tensorcontractmatrix!(helper.tnsrXfactors_low[1], helper.tnsr,
                           decomp.factors[1], 1)
     for n in 2:N
@@ -56,7 +56,7 @@ function _spnntucker_update_tensorXfactors_low!{T,N}(helper::SPNNTuckerHelper{T,
     return helper
 end
 
-function _spnntucker_factor_grad_components!{T,N}(helper::SPNNTuckerHelper{T,N}, decomp::Tucker{T,N}, n::Int)
+function _spnntucker_factor_grad_components!(helper::SPNNTuckerHelper{T,N}, decomp::Tucker{T,N}, n::Int) where {T,N}
     all_but_n = [1:(n-1); (n+1):N]
     cXa_size = (size(helper.tnsr)[1:n-1]..., helper.core_dims[n], size(helper.tnsr)[(n+1):N]...)
     coreXantifactor = tensorcontractmatrices!(acquire!(helper, cXa_size),
@@ -72,7 +72,7 @@ function _spnntucker_factor_grad_components!{T,N}(helper::SPNNTuckerHelper{T,N},
     return cXa2, tXcXa
 end
 
-function _spnntucker_reg_penalty{T,N}(decomp::Tucker{T,N}, lambdas::Vector{T})
+function _spnntucker_reg_penalty(decomp::Tucker{T,N}, lambdas::Vector{T}) where {T,N}
     res = 0.0
     for i in 1:N
         res += lambdas[i] > 0.0 ? (lambdas[i] * sum(decomp.factors[i])) : 0.0
@@ -80,7 +80,7 @@ function _spnntucker_reg_penalty{T,N}(decomp::Tucker{T,N}, lambdas::Vector{T})
     return res + (lambdas[N+1] > 0.0 ? (lambdas[N+1] * sum(abs, decomp.core)) : 0.0)
 end
 
-_spnntucker_project{PRJ}(::Type{Val{PRJ}}, x, lambda, bound) = throw(ArgumentError("Unknown project type: $PRJ"))
+_spnntucker_project(::Type{Val{PRJ}}, x, lambda, bound) where {PRJ} = throw(ArgumentError("Unknown project type: $PRJ"))
 
 _spnntucker_project(::Type{Val{:Nonneg}}, x, lambda, bound) = max(x, 0.0)
 _spnntucker_project(::Type{Val{:NonnegReg}}, x, lambda, bound) = max(x - lambda, 0.0)
@@ -91,67 +91,52 @@ _spnntucker_project(::Type{Val{:SignedReg}}, x, lambda, bound) = x > lambda ? x 
 _spnntucker_project(::Type{Val{:SignedBounded}}, x, lambda, bound) = x > bound ? bound : (x < -bound ? -bound : x)
 
 # update core tensor of dest
-function _spnntucker_update_core!{T,N,PRJ}(prj::Type{Val{PRJ}},
+function _spnntucker_update_core!(prj::Type{Val{PRJ}},
     helper::SPNNTuckerHelper{T,N}, dest::Tucker{T,N}, src::Tucker{T,N},
-    src_factor2s::Vector{Matrix{T}}, n::Int)
+    src_factor2s::Vector{Matrix{T}}, n::Integer) where {T,N,PRJ}
 
-    tensorXfactors_all = _as_vector(n < N ?
+    tensorXfactors_all = n < N ?
         tensorcontractmatrices!(acquire!(helper, helper.core_dims),
                                 helper.tnsrXfactors_low[n], dest.factors[(n+1):N], (n+1):N) :
-        helper.tnsrXfactors_low[N])::Vector{T}
-    s = (1.0/helper.L[N+1])::Float64
-    core_grad = _as_vector(tensorcontractmatrices!(acquire!(helper, helper.core_dims), src.core, src_factor2s))::Vector{T}
+        helper.tnsrXfactors_low[N]
+    s = (1.0/helper.L[N+1])
+    core_grad = tensorcontractmatrices!(acquire!(helper, helper.core_dims), src.core, src_factor2s)
     s_lambda = (helper.lambdas[N+1]/helper.L[N+1])::Float64
-    bound = helper.bounds[N+1]::T
-    src_core = _as_vector(src.core)::Vector{T}
-    dest_core = _as_vector(dest.core)::Vector{T}
-    @simd for i in eachindex(dest_core)
-        @inbounds dest_core[i] = _spnntucker_project(prj, src_core[i] - s*(core_grad[i] - tensorXfactors_all[i]),
-                                                     s_lambda, bound)
-    end
-    release!(helper, tensorXfactors_all)
+    bound = helper.bounds[N+1]
+    dest.core .= _spnntucker_project.(prj, src.core .- s .* (core_grad .- tensorXfactors_all),
+                                      s_lambda, bound)
+    (n < N) && release!(helper, tensorXfactors_all) # not acquired if n < N
     release!(helper, core_grad)
-    dest
+    return dest
 end
 
 # update n-th factor matrix of dest
 # return new residual
-function _spnntucker_update_factor!{T,N}(
+function _spnntucker_update_factor!(
     helper::SPNNTuckerHelper{T,N}, dest::Tucker{T,N}, src::Tucker{T,N},
     dest_factor2s::Vector{Matrix{T}}, n::Int
-)
+) where {T,N}
     coreXantifactor2, tnsrXcoreXantifactor = _spnntucker_factor_grad_components!(helper, dest, n)::Tuple{Matrix{T}, Matrix{T}}
-    factorXcoreXantifactor2 = _as_vector(A_mul_B!(acquire!(helper, size(src.factors[n])), src.factors[n], coreXantifactor2))
+    factorXcoreXantifactor2 = mul!(acquire!(helper, size(src.factors[n])), src.factors[n], coreXantifactor2)
 
     # update Lipschitz constant
     helper.L0[n] = helper.L[n]
-    helper.L[n] = max(helper.Lmin, vecnorm(coreXantifactor2))
+    helper.L[n] = max(helper.Lmin, norm(coreXantifactor2))
     s = (1.0/helper.L[n])
     # update n-th factor matrix
-    src_factor = _as_vector(src.factors[n])
-    dest_factor = _as_vector(dest.factors[n])
+    src_factor = src.factors[n]
+    dest_factor = dest.factors[n]
     lambda = helper.lambdas[n]
     bound = helper.bounds[n]
-    for i in eachindex(src_factor)
-        @inbounds f = src_factor[i] - s*(factorXcoreXantifactor2[i] - tnsrXcoreXantifactor[i]+lambda)
-        if lambda == 0.0 && isfinite(bound) && f > bound
-            f = bound
-        elseif f < 0.0
-            f = 0.0
-        end
-        @inbounds dest_factor[i] = f
+    @assert size(dest_factor) == size(src_factor) == size(factorXcoreXantifactor2) == size(tnsrXcoreXantifactor)
+    @inbounds if lambda == 0.0 && isfinite(bound)
+        dest_factor .= clamp.(src_factor .- s .* (factorXcoreXantifactor2 .- tnsrXcoreXantifactor), 0.0, bound)
+    else
+        dest_factor .= max.(src_factor .- s .* (factorXcoreXantifactor2 .- tnsrXcoreXantifactor .+ lambda), 0.0)
     end
-    dest_factor2 = _as_vector(At_mul_B!(dest_factor2s[n], dest.factors[n], dest.factors[n]))
-    coreXantifactor2_v = _as_vector(coreXantifactor2)
-    factor2XcoreXantifactor2 = 0.0
-    @simd for i in eachindex(dest_factor2)
-        @inbounds factor2XcoreXantifactor2 += dest_factor2[i] * coreXantifactor2_v[i]
-    end
-    factorXtnsrXcoreXantifactor = 0.0
-    tnsrXcoreXantifactor_v = _as_vector(tnsrXcoreXantifactor)
-    @simd for i in eachindex(dest_factor)
-        @inbounds factorXtnsrXcoreXantifactor += dest_factor[i] * tnsrXcoreXantifactor_v[i]
-    end
+    dest_factor2 = mul!(dest_factor2s[n], dest_factor', dest_factor)
+    factor2XcoreXantifactor2 = dot(dest_factor2, coreXantifactor2)
+    factorXtnsrXcoreXantifactor = dot(dest_factor, tnsrXcoreXantifactor)
     release!(helper, coreXantifactor2)
     release!(helper, tnsrXcoreXantifactor)
     release!(helper, factorXcoreXantifactor2)
@@ -160,29 +145,21 @@ function _spnntucker_update_factor!{T,N}(
             _spnntucker_reg_penalty(dest, helper.lambdas)
 end
 
-function _spnntucker_update_proxy_factor!{T,N}(
+function _spnntucker_update_proxy_factor!(
     proxy::Tucker{T,N}, cur::Tucker{T,N}, prev::Tucker{T,N},
-    n::Int, w::Float64
-)
-    factor_p = proxy.factors[n]
-    factor0 = prev.factors[n]
-    factor1 = cur.factors[n]
-    @simd for i in eachindex(factor_p)
-        @inbounds factor_p[i] = factor1[i] + w*(factor1[i]-factor0[i])
-    end
-    factor_p
+    n::Integer, w::Number
+) where {T,N}
+    @assert size(proxy.factors[n]) == size(cur.factors[n]) == size(prev.factors[n])
+    @inbounds proxy.factors[n] .= cur.factors[n] .+ w .* (cur.factors[n] .- prev.factors[n])
+    return proxy.factors[n]
 end
 
-function _spnntucker_update_proxy_core!{T,N}(
-    proxy::Tucker{T,N}, cur::Tucker{T,N}, prev::Tucker{T,N}, w::Float64
-)
-    core_p = reinterpret(T, proxy.core, (length(proxy.core),))::Vector{T}
-    core0 = reinterpret(T, prev.core, (length(proxy.core),))::Vector{T}
-    core = reinterpret(T, cur.core, (length(proxy.core),))::Vector{T}
-    @simd for i in eachindex(core_p)
-        @inbounds core_p[i] = core[i] + w*(core[i]-core0[i])
-    end
-    proxy
+function _spnntucker_update_proxy_core!(
+    proxy::Tucker{T,N}, cur::Tucker{T,N}, prev::Tucker{T,N}, w::Number
+) where {T,N}
+    @assert size(proxy.core) == size(cur.core) == size(prev.core)
+    @inbounds proxy.core .= cur.core .+ w .* (cur.core .- prev.core)
+    return proxy
 end
 
 """
@@ -226,13 +203,13 @@ The implementation is based on ntds_fapg() MATLAB code by Yangyang Xu and Wotao 
 See Y. Xu, "Alternating proximal gradient method for sparse nonnegative Tucker decomposition", Math. Prog. Comp., 7, 39-70, 2015.
 See http://www.caam.rice.edu/~optimization/bcu/`
 """
-function spnntucker{T,N}(tnsr::StridedArray{T, N}, core_dims::NTuple{N, Int};
-                         core_nonneg::Bool=true, tol::Float64=1e-4, hosvd_init::Bool=false,
-                         max_iter::Int=500, max_time::Float64=0.0,
-                         lambdas::Vector{Float64} = fill(0.0, N+1),
-                         Lmin::Float64 = 1.0, rw::Float64=0.9999,
-                         bounds::Vector{Float64} = fill(Inf, N+1), ini_decomp = nothing,
-                         verbose::Bool=false)
+function spnntucker(tnsr::StridedArray{T, N}, core_dims::NTuple{N, Int};
+                    core_nonneg::Bool=true, tol::Float64=1e-4, hosvd_init::Bool=false,
+                    max_iter::Int=500, max_time::Float64=0.0,
+                    lambdas::Vector{Float64} = fill(0.0, N+1),
+                    Lmin::Float64 = 1.0, rw::Float64=0.9999,
+                    bounds::Vector{Float64} = fill(Inf, N+1), ini_decomp = nothing,
+                    verbose::Bool=false) where {T,N}
     start_time = time()
 
     # define "kernel" functions for "fixing" the core tensor after iteration
@@ -259,12 +236,11 @@ function spnntucker{T,N}(tnsr::StridedArray{T, N}, core_dims::NTuple{N, Int};
     end
 
     if ini_decomp === nothing
-        verbose && info("Generating random initial factor matrices and core tensor estimates...")
-        ini_decomp = Tucker((Matrix{T}[randn(size(tnsr, i), core_dims[i]) for i in 1:N]...),
-                            randn(core_dims...))
+        verbose && @info("Generating random initial factor matrices and core tensor estimates...")
+        ini_decomp = Tucker(ntuple(i -> randn(size(tnsr, i), core_dims[i]), N), randn(core_dims...))
         rescale_ini = true
     elseif ini_decomp == :hosvd
-        verbose && info("Using High-Order SVD to get initial decomposition...")
+        verbose && @info("Using High-Order SVD to get initial decomposition...")
         # "solve" Z = tnsr x_1 U_1' ... x_K U_K'
         ini_decomp = hosvd(tnsr, core_dims, pad_zeros=true)
         rescale_ini = true
@@ -274,11 +250,11 @@ function spnntucker{T,N}(tnsr::StridedArray{T, N}, core_dims::NTuple{N, Int};
         throw(ArgumentError("Incorrect ini_decomp value"))
     end
 
-    #verbose && info("Initializing helper object...")
+    #verbose && @info("Initializing helper object...")
     helper = SPNNTuckerHelper(tnsr, core_dims, lambdas, bounds, Lmin, verbose = verbose)
-    verbose && info("|tensor|=$(helper.tnsr_nrm)")
+    verbose && @info("|tensor|=$(helper.tnsr_nrm)")
 
-    verbose && info("Rescaling initial decomposition...")
+    verbose && @info("Rescaling initial decomposition...")
     decomp0 = deepcopy(ini_decomp)
     if rescale_ini
         rescale!(decomp0, helper.tnsr_nrm)
@@ -286,15 +262,15 @@ function spnntucker{T,N}(tnsr::StridedArray{T, N}, core_dims::NTuple{N, Int};
     decomp = deepcopy(decomp0)     # current decomposition
     decomp_p = deepcopy(decomp0)   # proxy decomposition
 
-    #verbose && info("Calculating factors squares...")
+    #verbose && @info("Calculating factors squares...")
     factor2s0 = Matrix{T}[f'f for f in decomp0.factors]
     factor2s = deepcopy(factor2s0)
-    factor2_nrms = map(vecnorm, factor2s)::Vector{Float64}
+    factor2_nrms = norm.(factor2s)
 
-    #verbose && info("Calculating initial residue...")
-    resid = resid0 = 0.5*vecnorm(tnsr - compose(decomp0))^2 + _spnntucker_reg_penalty(decomp0, lambdas)
+    #verbose && @info("Calculating initial residue...")
+    resid = resid0 = 0.5*norm(tnsr - compose(decomp0))^2 + _spnntucker_reg_penalty(decomp0, lambdas)
     resid = resid0 # current residual error
-    verbose && info("Initial residue=$resid0")
+    verbose && @info("Initial residue=$resid0")
 
     # Iterations of block-coordinate update
     # iteratively updated variables:
@@ -308,7 +284,7 @@ function spnntucker{T,N}(tnsr::StridedArray{T, N}, core_dims::NTuple{N, Int};
     nredo = 0
     converged = false
 
-    #verbose && info("Starting iterations...")
+    #verbose && @info("Starting iterations...")
     pb = Progress(max_iter, "Alternating proximal gradient iterations")
     niter = 1
     while !converged
@@ -331,24 +307,24 @@ function spnntucker{T,N}(tnsr::StridedArray{T, N}, core_dims::NTuple{N, Int};
                 # objective function is decreased
                 nredo += 1
                 # re-update to make objective nonincreasing
-                copy!(factor2s[n], factor2s0[n]) # restore factor square, core update needs it
+                copyto!(factor2s[n], factor2s0[n]) # restore factor square, core update needs it
                 _spnntucker_update_core!(projection_type, helper, decomp, decomp0, factor2s, n)
                 residn = _spnntucker_update_factor!(helper, decomp, decomp0, factor2s, n)
-                verbose && residn > residn0 && warn("$niter: residue increase at redo step")
+                verbose && residn > residn0 && @warn("$niter: residue increase at redo step")
             end
             # --- correction and extrapolation ---
             t[n] = (1.0+sqrt(1.0+4.0*t0[n]^2))/2.0
-            #verbose && info("Updating proxy factors $n...")
+            #verbose && @info("Updating proxy factors $n...")
             _spnntucker_update_proxy_factor!(decomp_p, decomp, decomp0, n, min((t0[n]-1)/t[n], rw*sqrt(helper.L0[n]/helper.L[n])))
             t[N+1] = (1.0+sqrt(1.0+4.0*t0[N+1]^2))/2.0
-            #verbose && info("Updating proxy core $n...")
+            #verbose && @info("Updating proxy core $n...")
             _spnntucker_update_proxy_core!(decomp_p, decomp, decomp0, min((t0[N+1]-1)/t[N+1], rw*sqrt(helper.L0[N+1]/helper.L[N+1])))
 
-            #verbose && info("Storing updated core and factors...")
-            copy!(decomp0.core, decomp.core)
-            copy!(decomp0.factors[n], decomp.factors[n])
-            copy!(factor2s0[n], factor2s[n])
-            factor2_nrms[n] = vecnorm(factor2s[n])
+            #verbose && @info("Storing updated core and factors...")
+            copyto!(decomp0.core, decomp.core)
+            copyto!(decomp0.factors[n], decomp.factors[n])
+            copyto!(factor2s0[n], factor2s[n])
+            factor2_nrms[n] = norm(factor2s[n])
             t0[n] = t[n]
             t0[N+1] = t[N+1]
             residn0 = residn
@@ -358,7 +334,7 @@ function spnntucker{T,N}(tnsr::StridedArray{T, N}, core_dims::NTuple{N, Int};
         resid0 = resid
         resid = residn0
 
-        #verbose && info("Storing statistics...")
+        #verbose && @info("Storing statistics...")
         cur_state = SPNNTuckerState(resid, resid0, helper.tnsr_nrm)
         push!(iter_diag, cur_state)
 
@@ -366,20 +342,20 @@ function spnntucker{T,N}(tnsr::StridedArray{T, N}, core_dims::NTuple{N, Int};
         niter += 1
         nstall = cur_state.rel_residue_delta < tol ? nstall + 1 : 0
         if nstall >= 3 || cur_state.rel_residue < tol
-            verbose && (cur_state.rel_residue == 0.0) && info("Residue is zero. Exact decomposition was found")
-            verbose && (nstall >= 3) && info("Relative error below $tol $nstall times in a row")
-            verbose && (cur_state.rel_residue < tol) && info("Relative error is $(cur_state.rel_residue) times below input tensor norm")
-            verbose && info("spnntucker() converged in $niter iteration(s), $nredo redo steps")
+            verbose && (cur_state.rel_residue == 0.0) && @info("Residue is zero. Exact decomposition was found")
+            verbose && (nstall >= 3) && @info("Relative error below $tol $nstall times in a row")
+            verbose && (cur_state.rel_residue < tol) && @info("Relative error is $(cur_state.rel_residue) times below input tensor norm")
+            verbose && @info("spnntucker() converged in $niter iteration(s), $nredo redo steps")
             converged = true
             finish!(pb)
             break
         elseif (max_time > 0) && ((time() - start_time) > max_time)
             cancel(pb, "Maximal time exceeded, might be not an optimal solution")
-            verbose && info("Final relative error $(cur_state.rel_residue)")
+            verbose && @info("Final relative error $(cur_state.rel_residue)")
             break
         elseif niter == max_iter
             cancel(pb, "Maximal number of iterations reached, might be not an optimal solution")
-            verbose && info("Final relative error $(cur_state.rel_residue)")
+            verbose && @info("Final relative error $(cur_state.rel_residue)")
             break
         end
     end # iterations

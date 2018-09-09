@@ -1,6 +1,8 @@
 using TensorDecompositions
 using TensorOperations
-using FactCheck
+using Test
+using Random
+using LinearAlgebra
 
 include("helpers.jl")
 
