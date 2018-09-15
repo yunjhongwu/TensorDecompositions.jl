@@ -107,7 +107,9 @@ function _candecomp(
     resid = tnsr_norm
     lbds = Matrix{Float64}(undef, 1, r)
     V = Matrix{Float64}(undef, length(tnsr) ÷ minimum(tnsr_size), r)
+    pb = Progress(maxiter, "ALS iterations ")
     while !converged && niters < maxiter
+        update!(pb, niters)
         nVi = 0
         @inbounds for i in 1:N
             idx = [N:-1:i + 1; i - 1:-1:1]
@@ -124,6 +126,7 @@ function _candecomp(
         converged = abs(resid - resid_old) < tol * resid_old
         niters += 1
     end
+    finish!(pb)
 
     verbose && _iter_status(converged, niters, maxiter)
 
@@ -158,7 +161,9 @@ function _candecomp(
     res = norm(tnsr)
     converged = false
     niters = 0
+    pb = Progress(maxiter, "SGSD iterations ")
     @inbounds while !converged && niters < maxiter
+        update!(pb, niters)
         # reset to diagonal
         @inbounds for i in 1:n1, j in 1:n1
             q[i, j] = ifelse(i == j, 1.0, 0.0)
@@ -185,7 +190,7 @@ function _candecomp(
         converged = abs(res - res_old) < tol * res_old
         niters += 1
     end
-
+    finish!(pb)
     verbose && _iter_status(converged, niters, maxiter)
 
     R = R[1:r, n2-r+1:n2, :]

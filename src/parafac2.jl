@@ -48,7 +48,9 @@ function parafac2(X::AbstractVector{<:StridedMatrix{T}},
     niters = 0
     converged = false
     resid = resid0 = norm(X)
+    pb = Progress(maxiter, "PARAFAC2 iterations ")
     while !converged && niters < maxiter
+        update!(pb, niters)
         for i in eachindex(H)
             u = svd((F .* view(B, i, :)) * (H[i] * A)')
             mul!(P[i], u.U, u.Vt)
@@ -70,7 +72,7 @@ function parafac2(X::AbstractVector{<:StridedMatrix{T}},
 
         niters += 1
     end
-
+    finish!(pb)
     verbose && _iter_status(converged, niters, maxiter)
     res = PARAFAC2(X, F, Matrix(B'), A)
     compute_error && _set_rel_residue(res, sqrt(resid) / resid0)

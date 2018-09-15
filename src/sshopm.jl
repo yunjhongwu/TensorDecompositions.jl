@@ -53,7 +53,10 @@ function sshopm(tnsr::AbstractArray{T,N},
     x_old = similar(x)
     converged = false
     niters = 0
+    pb = Progress(maxiter, "High-order power iterations ")
     while !converged && niters < maxiter
+        update!(pb, niters)
+    
         copyto!(x_old, x)
         x .= flipsign.(nmul(tnsr, x) .+ alpha .* x, alpha)
         x .*= 1/norm(x)

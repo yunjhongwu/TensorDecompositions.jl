@@ -27,7 +27,10 @@ function nncp(tnsr::StridedArray,
     LB_old = fill!(similar(tnsr, num_modes), 1.0)
 
     U = similar(tnsr, r, r)
+    
+    pb = Progress(maxiter, "NNCP iterations ")
     while !converged && niters < maxiter
+        update!(pb, niters)
         LB_old .= LB
         local M::typeof(U)
         for i in 1:num_modes
@@ -58,7 +61,7 @@ function nncp(tnsr::StridedArray,
         end
         niters += 1
     end
-
+    finish!(pb)
     verbose && _iter_status(converged, niters, maxiter)
 
     res = CANDECOMP(tuple(factors...), fill!(similar(tnsr, r), 1.0))

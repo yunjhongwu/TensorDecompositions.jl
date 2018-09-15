@@ -285,7 +285,7 @@ function spnntucker(tnsr::StridedArray{T, N}, core_dims::NTuple{N, Int};
     converged = false
 
     #verbose && @info("Starting iterations...")
-    pb = Progress(max_iter, "Alternating proximal gradient iterations")
+    pb = Progress(max_iter, "Alternating proximal gradient iterations ")
     niter = 1
     while !converged
         update!(pb, niter)
