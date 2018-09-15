@@ -7,7 +7,7 @@ function hosvd(tensor::StridedArray{T,N}, core_dims::NTuple{N, Int};
 
     factors = map(1:N) do i
         X = _col_unfold(tensor, i)
-        f = eigen(Symmetric(X'X), (size(X,2)-core_dims[i]+1):size(X,2)).vectors
+        f = eigen(Symmetric(X'X), max(1, size(X,2)-core_dims[i]+1):size(X,2)).vectors
         if pad_zeros && size(f, 2) < core_dims[i] # fill missing factors with zeros
             f = hcat(f, zeros(T, size(tensor, i), core_dims[i]-size(f, 2)))
         end
