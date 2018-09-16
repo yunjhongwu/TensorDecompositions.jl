@@ -3,10 +3,11 @@
 A Julia implementation of tensor decomposition algorithms
 
 [![Build Status](https://travis-ci.org/yunjhongwu/TensorDecompositions.jl.svg?branch=master)](https://travis-ci.org/yunjhongwu/TensorDecompositions.jl) [![Coverage Status](https://coveralls.io/repos/yunjhongwu/TensorDecompositions.jl/badge.svg?branch=master&service=github)](https://coveralls.io/github/yunjhongwu/TensorDecompositions.jl?branch=master)
-[![TensorDecompositions](http://pkg.julialang.org/badges/TensorDecompositions_1.0.svg)](http://pkg.julialang.org/?pkg=TensorDecompositions&ver=1.0)
 
 ------- 
-
+### What's new
+ - Compatible with Julia v0.7/v1.0
+  
 ### Available functions 
 
 1. The following functions for **Tucker decompositions**, except for `sshopm`, return a `Tucker`, which contains `factors::Vector{Matrix{Float64}}`, `core::Array{Float64}` (1-dimensional array for **Kruskal decompositions**), and the relative reconstruction error `error::Float64`.
@@ -86,9 +87,10 @@ julia> F.factors[1]
 ```
 
 ### Requirements
-  - Julia 0.6
+  - Julia 0.7/1.0
   - TensorOperations
   - Distributions
+  - StatsBase
   - ProgressMeter
   - FactCheck
 
@@ -113,8 +115,7 @@ julia> F.factors[1]
 
  - [5] Mahoney, M. W., Maggioni, M., & Drineas, P. (2008). Tensor-CUR decompositions for tensor-based data. *SIAM Journal on Matrix Analysis and Applications*, 30(3), 957-987.
 
- - [6] Xu, Y. (2015). Alternating proximal gradient method for sparse nonnegative Tucker decomposition. *Mathematical Programming Computation*, 7(1), 39-70.
-
+ - [6] Xu, Y. (2015). Alternating proximal gradient method for sparse nonnegative Tucker decomposition. *Mathematical Programming Computation*, 7(1), 39-70.  
  - [7] Xu, Y., & Yin, W. (2013). A block coordinate descent method for regularized multiconvex optimization with applications to nonnegative tensor factorization and completion. *SIAM Journal on Imaging Sciences*, 6(3), 1758-1789.
 
 ### Special thanks
