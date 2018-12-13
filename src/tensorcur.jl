@@ -1,15 +1,15 @@
 """
 CUR (columns-U-rows) 3-tensor decomposition.
 """
-struct CUR <: TensorDecomposition{Float64, 3}
+struct CUR{T<:Number, N} <: TensorDecomposition{T, 3}
     Cindex::Vector{Int64}
     Cweight::Vector{Int64}
     Rindex::Vector{CartesianIndex{2}}
     Rweight::Vector{Int64}
-    U::Matrix{Float64}
-    error::Vector{Float64}
+    U::Matrix{T}
+    error::Vector{T}
 
-    function CUR(tnsr::StridedArray{Float64},
+    function CUR(tnsr::StridedArray{T, N},
                  slab_axis::Integer,
                  fiber_axes::NTuple{2, Int64},
                  fiber_size::NTuple{2, Int64},
@@ -17,8 +17,8 @@ struct CUR <: TensorDecomposition{Float64, 3}
                  Cweight::Vector{Int64},
                  Rindex::Vector{Int64},
                  Rweight::Vector{Int64},
-                 U::Matrix{Float64},
-                 compute_u::Bool)
+                 U::Matrix{T},
+                 compute_u::Bool) where {T,N}
 
         if compute_u
             output_index = collect(1:3)
@@ -30,9 +30,9 @@ struct CUR <: TensorDecomposition{Float64, 3}
             S .-= tnsr
             err = dropdims(mapslices(norm, S, dims=fiber_axes) ./ mapslices(norm, tnsr, dims=fiber_axes), dims=fiber_axes)
         else
-            err = Vector{Float64}()
+            err = Vector{T}()
         end
-        new(Cindex, Cweight,
+        new{T,N}(Cindex, Cweight,
             CartesianIndices(fiber_size)[Rindex], Rweight,
             U, err)
     end

@@ -80,7 +80,7 @@ _candecomp(
   method::Val{S},
   tnsr::StridedArray{T,N},
   r::Integer,
-  factors::Vector{Matrix{Float64}},
+  factors::Vector{Matrix{T}},
   tol::Float64,
   maxiter::Integer,
   verbose::Bool) where {T,N,S<:Symbol} =
@@ -93,7 +93,7 @@ function _candecomp(
     method::Type{Val{:ALS}},
     tnsr::StridedArray{T,N},
     r::Integer,
-    factors::Vector{Matrix{Float64}},
+    factors::Vector{Matrix{T}},
     tol::Float64,
     maxiter::Integer,
     verbose::Bool) where {T,N}
@@ -105,8 +105,8 @@ function _candecomp(
     niters = 0
     converged = false
     resid = tnsr_norm
-    lbds = Matrix{Float64}(undef, 1, r)
-    V = Matrix{Float64}(undef, length(tnsr) ÷ minimum(tnsr_size), r)
+    lbds = Matrix{T}(undef, 1, r)
+    V = Matrix{T}(undef, length(tnsr) ÷ minimum(tnsr_size), r)
     pb = Progress(maxiter, "ALS iterations ")
     while !converged && niters < maxiter
         update!(pb, niters)
@@ -138,12 +138,12 @@ Computes CANDECOMP by SGSD (Simultaneous Generalized Schur Decomposition) method
 """
 function _candecomp(
     method::Type{Val{:SGSD}},
-    tnsr::StridedArray{<:Number},
+    tnsr::StridedArray{T, N},
     r::Int,
     factors::Vector{<:StridedMatrix},
     tol::Float64,
     maxiter::Integer,
-    verbose::Bool)
+    verbose::Bool) where {T,N}
 
     ndims(tnsr) == 3 || throw(ArgumentError("This algorithm only applies to 3-mode tensors."))
     length(factors) == 3 || throw(ArgumentError("3 factor matrices expected."))
@@ -152,8 +152,8 @@ function _candecomp(
     IB2 = (n2 == r) ? 2 : 1
     Q = qr(factors[1]).Q * Matrix(I, n1, n1)
     Z = qr(reverse(factors[2], dims=2)).Q * Matrix(I, n2, n2)
-    q = Matrix{Float64}(undef, n1, n1)
-    z = Matrix{Float64}(undef, n2, n2)
+    q = Matrix{T}(undef, n1, n1)
+    z = Matrix{T}(undef, n2, n2)
 
     @tensor R[4,5,3] := tnsr[1,2,3] * Q[1,4] * Z[2,5]
     R2 = similar(R)
@@ -194,7 +194,7 @@ function _candecomp(
     verbose && _iter_status(converged, niters, maxiter)
 
     R = R[1:r, n2-r+1:n2, :]
-    M = Array{Float64,3}(undef, r, r, 2)
+    M = Array{T,3}(undef, r, r, 2)
     @inbounds for k in 1:2, j in 1:r, i in 1:r
         M[i, j, k] = i == j ? 1.0 : 0.0
     end

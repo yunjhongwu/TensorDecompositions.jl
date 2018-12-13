@@ -9,9 +9,9 @@ struct PARAFAC2{T<:Number, N} <: TensorDecomposition{T, N}
 
     function PARAFAC2(
                    X::Vector{Matrix{T}},
-                   F::Matrix{Float64},
-                   B::Matrix{Float64},
-                   A::Matrix{Float64}) where T
+                   F::Matrix{T},
+                   B::Matrix{T},
+                   A::Matrix{T}) where T
         N = length(X)
         @assert size(B, 2) == N
         factors = ntuple(N) do i
@@ -41,8 +41,8 @@ function parafac2(X::AbstractVector{<:StridedMatrix{T}},
     B = fill(T(1.0), m, r)
     A = eigen(Symmetric(sum(Xi -> Xi'Xi, X)), (n-r+1):n).vectors
     G1 = Matrix{T}(I, r, r); G2 = copy(G1); G3 = fill(T(m), r, r)
-    H = Matrix{Float64}[(size(X[i], 1) > size(X[i], 2) ? qr(X[i]).R : X[i]) for i in 1:m]
-    P = [Matrix{Float64}(undef, r, size(H[i], 1)) for i in 1:m]
+    H = Matrix{T}[(size(X[i], 1) > size(X[i], 2) ? qr(X[i]).R : X[i]) for i in 1:m]
+    P = [Matrix{T}(undef, r, size(H[i], 1)) for i in 1:m]
     PH = Array{T, 3}(undef, r, n, m)
 
     niters = 0
