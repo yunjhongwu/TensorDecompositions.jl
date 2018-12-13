@@ -1,18 +1,18 @@
 """
 Non-negative CANDECOMP tensor decomposition.
 """
-function nncp(tnsr::StridedArray,
+function nncp(tnsr::StridedArray{T,N},
               r::Integer;
               tol::Float64=1e-4,
               maxiter::Integer=100,
               compute_error::Bool=false,
-              verbose::Bool=true)
+              verbose::Bool=true) where {T,N}
 
     all(x -> x >= 0, tnsr) || throw(ArgumentError("Input tensor must be nonnegative."))
     num_modes = _check_tensor(tnsr, r)
     T_norm = norm(tnsr)
 
-    factors = [abs.(F) .* (T_norm ^ (1/num_modes) / norm(F)) for F::Matrix{Float64} in _random_factors(size(tnsr), r)]
+    factors = [abs.(F) .* (T_norm ^ (1/num_modes) / norm(F)) for F::Matrix{T} in _random_factors(size(tnsr), r)]
     factors_old = deepcopy(factors)
     factors_exp = deepcopy(factors)
     gram = [F'F for F in factors]
@@ -27,7 +27,7 @@ function nncp(tnsr::StridedArray,
     LB_old = fill!(similar(tnsr, num_modes), 1.0)
 
     U = similar(tnsr, r, r)
-    
+
     pb = Progress(maxiter, "NNCP iterations ")
     while !converged && niters < maxiter
         update!(pb, niters)
