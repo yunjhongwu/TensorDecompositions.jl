@@ -51,7 +51,7 @@ julia> using TensorDecompositions
 julia> u = randn(10); v = randn(20); w = randn(30)
 
 # Generate a noisy rank-1 tensor
-julia> T = cat(3, map(x -> x * u * v', w)...) + 0.2 * randn(10, 20, 30)
+julia> T = cat(map(x -> x * u * v', w)..., dims=3) + 0.2 * randn(10, 20, 30)
 
 julia> size(T)
 (10, 20, 30)
